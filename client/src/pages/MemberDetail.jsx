@@ -9,42 +9,51 @@ const DEFAULT_MEMBER_IMAGE = '/logos/vieos.webp';
 
 const desktopSlideVariants = {
     initial: (direction) => ({
-        x: direction > 0 ? 56 : -56
+        x: direction > 0 ? 40 : -40,
+        opacity: 0,
+        scale: 0.98
     }),
     animate: {
         x: 0,
+        opacity: 1,
+        scale: 1,
         transition: {
             type: 'spring',
             stiffness: 300,
-            damping: 32,
-            mass: 0.85
+            damping: 30,
+            mass: 0.8
         }
     },
     exit: (direction) => ({
-        x: direction > 0 ? -56 : 56,
+        x: direction > 0 ? -40 : 40,
+        opacity: 0,
+        scale: 0.98,
         transition: {
-            duration: 0.24,
-            ease: [0.4, 0, 0.2, 1]
+            duration: 0.2,
+            ease: 'easeInOut'
         }
     })
 };
 
 const mobileSlideVariants = {
     initial: (direction) => ({
-        x: direction > 0 ? 26 : -26
+        x: direction > 0 ? 25 : -25,
+        opacity: 0
     }),
     animate: {
         x: 0,
+        opacity: 1,
         transition: {
-            duration: 0.22,
+            duration: 0.3,
             ease: [0.25, 0.1, 0.25, 1]
         }
     },
     exit: (direction) => ({
-        x: direction > 0 ? -26 : 26,
+        x: direction > 0 ? -25 : 25,
+        opacity: 0,
         transition: {
-            duration: 0.18,
-            ease: [0.4, 0, 0.2, 1]
+            duration: 0.2,
+            ease: 'easeInOut'
         }
     })
 };
@@ -56,9 +65,9 @@ const MemberDetail = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [hoveredId, setHoveredId] = useState(null);
     const [initialLoading, setInitialLoading] = useState(true);
-    const [flipDirection, setFlipDirection] = useState(1);
     const [isMobile, setIsMobile] = useState(false);
-    const previousIndexRef = useRef(-1);
+    const previousIdRef = useRef(id);
+    const directionRef = useRef(1);
 
     const filteredMembers = useMemo(() => {
         const keyword = searchTerm.trim().toLowerCase();
@@ -109,18 +118,26 @@ const MemberDetail = () => {
         return () => mediaQuery.removeEventListener('change', syncMobile);
     }, []);
 
-    useEffect(() => {
-        if (!selectedMember || members.length === 0) return;
+    if (id !== previousIdRef.current) {
+        const previousId = previousIdRef.current;
+        const prevNumber = Number(previousId);
+        const nextNumber = Number(id);
 
-        const nextIndex = members.findIndex((member) => String(member.id) === String(selectedMember.id));
-        if (nextIndex < 0) return;
+        if (Number.isFinite(prevNumber) && Number.isFinite(nextNumber) && prevNumber !== nextNumber) {
+            directionRef.current = nextNumber > prevNumber ? 1 : -1;
+        } else {
+            const prevIndex = members.findIndex((member) => String(member.id) === String(previousId));
+            const nextIndex = members.findIndex((member) => String(member.id) === String(id));
 
-        if (previousIndexRef.current >= 0 && previousIndexRef.current !== nextIndex) {
-            setFlipDirection(nextIndex > previousIndexRef.current ? 1 : -1);
+            if (prevIndex >= 0 && nextIndex >= 0 && prevIndex !== nextIndex) {
+                directionRef.current = nextIndex > prevIndex ? 1 : -1;
+            }
         }
 
-        previousIndexRef.current = nextIndex;
-    }, [selectedMember, members]);
+        previousIdRef.current = id;
+    }
+
+    const flipDirection = directionRef.current;
 
     if (initialLoading) {
         return (
@@ -188,8 +205,7 @@ const MemberDetail = () => {
                         <div className="flex-1 flex flex-col bg-white dark:bg-[#121214] overflow-hidden relative">
                             <AnimatePresence mode="wait" initial={false} custom={flipDirection}>
                                 <motion.div
-                                    key={selectedMember.id}
-                                    custom={flipDirection}
+                                    key={id}
                                     variants={isMobile ? mobileSlideVariants : desktopSlideVariants}
                                     initial="initial"
                                     animate="animate"
