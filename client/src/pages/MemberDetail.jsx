@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchMembers } from '../api';
 import { Sparkles, X, ChevronRight, Cake, Users, Instagram, Heart, ArrowLeft, Search } from 'lucide-react';
+import SkeletonImage from '../components/SkeletonImage';
 
 const MemberDetail = () => {
     const { id } = useParams();
@@ -144,10 +145,12 @@ const MemberDetail = () => {
                                                 
                                                 <div className="bg-white p-1.5 rounded-2xl flex flex-col flex-1 w-full h-full min-h-0">
                                                     <div className="relative rounded-xl overflow-hidden bg-gray-100 group flex-1 w-full h-full min-h-0">
-                                                        <img 
-                                                            src={selectedMember.image || selectedMember.image_url || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"} 
+                                                        <SkeletonImage
+                                                            src={selectedMember.image || selectedMember.image_url || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"}
+                                                            fallbackSrc="https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"
                                                             alt={selectedMember.nickname}
-                                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                            wrapperClassName="absolute inset-0"
+                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                         />
                                                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-8 flex flex-col justify-end translate-y-2 group-hover:translate-y-0 transition-transform">
                                                             <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] block mb-2">
@@ -243,7 +246,13 @@ const MemberDetail = () => {
                                                         className="w-14 h-14 rounded-full overflow-hidden border-2 p-0.5" 
                                                         style={{ borderColor: selectedMember.id === m.id ? m.themeColor : 'transparent' }}
                                                     >
-                                                        <img src={m.image} alt={m.nickname} className="w-full h-full object-cover rounded-full" />
+                                                        <SkeletonImage
+                                                            src={m.image || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"}
+                                                            fallbackSrc="https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"
+                                                            alt={m.nickname}
+                                                            wrapperClassName="w-full h-full rounded-full"
+                                                            className="w-full h-full object-cover rounded-full"
+                                                        />
                                                     </div>
                                                 </button>
                                             ))}

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { fetchEvents, API_URL } from '../api';
 import Toast from '../components/Toast';
+import { convertFileToWebp } from '../utils/imageUpload';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -108,55 +109,47 @@ const Checkout = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    setProof(prev => ({ ...prev, isCompressing: true }));
-    
-    // Preview immediately
+    if (!file.type.startsWith('image/')) {
+      setShowToast('File harus berupa gambar.');
+      return;
+    }
+
+    setProof(prev => ({ ...prev, isCompressing: true, compressed: null }));
+
+    // Show preview immediately while conversion runs in parallel.
     const reader = new FileReader();
     reader.onload = (event) => {
-      setProof(prev => ({ ...prev, preview: event.target.result }));
-      
-      // Compress
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1200;
-        const MAX_HEIGHT = 1200;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // Quality 0.7 for good balance
-        canvas.toBlob((blob) => {
-          setProof(prev => ({ 
-            ...prev, 
-            compressed: blob,
-            isCompressing: false 
-          }));
-        }, 'image/jpeg', 0.7);
-      };
-      img.src = event.target.result;
+      if (event.target?.result) {
+        setProof(prev => ({ ...prev, preview: event.target.result }));
+      }
     };
     reader.readAsDataURL(file);
+
+    try {
+      const webpBlob = await convertFileToWebp(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.78
+      });
+
+      setProof(prev => ({
+        ...prev,
+        compressed: webpBlob,
+        isCompressing: false
+      }));
+    } catch (error) {
+      console.error('Proof conversion error:', error);
+      setProof(prev => ({
+        ...prev,
+        compressed: null,
+        isCompressing: false
+      }));
+      setShowToast('Gagal memproses gambar. Coba file lain ya!');
+    }
   };
 
   const isFormValid = formData.nickname && formData.contact && formData.eventId && proof.compressed && cart.length > 0;
@@ -198,7 +191,7 @@ const Checkout = () => {
       let proofUrl = null;
       if (proof.compressed) {
         const uploadData = new FormData();
-        uploadData.append('proof', proof.compressed, 'proof.jpg');
+        uploadData.append('proof', proof.compressed, 'proof.webp');
         const uploadRes = await fetch(`${API_URL}/orders/upload-proof`, {
           method: 'POST',
           body: uploadData

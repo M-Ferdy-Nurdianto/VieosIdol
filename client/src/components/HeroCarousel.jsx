@@ -37,6 +37,7 @@ const slides = [
 const HeroCarousel = () => {
   const [current, setCurrent] = useState(0);
   const [isLowPowerMode, setIsLowPowerMode] = useState(false);
+  const [isSlideLoaded, setIsSlideLoaded] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px), (prefers-reduced-motion: reduce), (hover: none) and (pointer: coarse)');
@@ -53,6 +54,10 @@ const HeroCarousel = () => {
     return () => clearInterval(timer);
   }, [isLowPowerMode]);
 
+  useEffect(() => {
+    setIsSlideLoaded(false);
+  }, [current]);
+
   return (
     <div className="relative h-screen w-full overflow-hidden flex items-center justify-center">
       {/* Background Slides */}
@@ -66,14 +71,23 @@ const HeroCarousel = () => {
           className="absolute inset-0 z-0"
         >
           {/* Ken Burns Effect Image */}
+            {!isSlideLoaded && (
+              <div className="absolute inset-0 animate-pulse bg-black/40" aria-hidden="true" />
+            )}
             <img 
                src={slides[current].image} 
                alt={slides[current].title}
               loading={current === 0 ? 'eager' : 'lazy'}
               decoding="async"
-               className="absolute inset-0 w-full h-full object-cover"
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isSlideLoaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => setIsSlideLoaded(true)}
                onError={(e) => {
-                  e.target.src = slides[current].fallback;
+                if (e.currentTarget.dataset.fallbackApplied === 'true') {
+                  setIsSlideLoaded(true);
+                  return;
+                }
+                e.currentTarget.dataset.fallbackApplied = 'true';
+                e.currentTarget.src = slides[current].fallback;
                }}
             />
           

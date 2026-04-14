@@ -1,3 +1,5 @@
+import { buildWebpFileName, convertFileToWebp } from './utils/imageUpload';
+
 const rawApiUrl = import.meta.env.VITE_API_URL || '/api';
 export const API_URL = rawApiUrl.replace(/\/$/, '');
 
@@ -139,8 +141,14 @@ export const deleteMember = async (id) => {
 
 export const uploadMemberPhoto = async (file) => {
     try {
+        const webpBlob = await convertFileToWebp(file, {
+            maxWidth: 1600,
+            maxHeight: 1600,
+            quality: 0.82
+        });
+
         const formData = new FormData();
-        formData.append('photo', file);
+        formData.append('photo', webpBlob, buildWebpFileName(file?.name || 'member-photo', 'member-photo'));
         const response = await fetch(`${API_URL}/public/members/upload-photo`, {
             method: 'POST',
             body: formData,

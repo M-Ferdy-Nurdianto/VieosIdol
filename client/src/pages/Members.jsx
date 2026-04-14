@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { fetchMembers } from '../api';
 import { Star } from 'lucide-react';
+import SkeletonImage from '../components/SkeletonImage';
 
 const Members = () => {
   const [members, setMembers] = useState([]);
@@ -81,9 +82,11 @@ const Members = () => {
               className="relative aspect-[4/5] rounded-xl overflow-hidden border-[6px] shadow-2xl transition-all duration-500 bg-white"
               style={{ borderColor: member.themeColor }}
             >
-              <img 
-                src={member.image || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"} 
+              <SkeletonImage
+                src={member.image || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"}
+                fallbackSrc="https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"
                 alt={member.nickname}
+                wrapperClassName="w-full h-full"
                 className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-700"
               />
               

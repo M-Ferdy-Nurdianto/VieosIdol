@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchMembers, API_URL } from '../api';
 import { Plus, Sparkles, LayoutGrid, Users, CheckCircle2, ChevronRight, Tag } from 'lucide-react';
 import Toast from '../components/Toast';
+import SkeletonImage from '../components/SkeletonImage';
 
 const Cheki = () => {
   const [liveEvents, setLiveEvents] = useState([]);
@@ -97,8 +98,14 @@ const Cheki = () => {
             <div className="absolute inset-0 bg-[#1E2132] rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)] md:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] overflow-hidden border border-white/10 flex flex-col md:flex-row items-stretch">
                 {/* Left: Visual/Promo Area */}
                 <div className="relative flex-grow overflow-hidden min-h-[240px]">
-                    <div className="absolute inset-0 opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100"
-                         style={{ backgroundImage: `url('/photo/hero/hero.png')`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                    <div className="absolute inset-0 opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100">
+                      <SkeletonImage
+                        src="/photo/hero/hero.png"
+                        alt="Group Cheki"
+                        wrapperClassName="absolute inset-0"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#1E2132]/90" />
                     
                     <div className="absolute top-6 md:top-10 left-6 md:left-10 z-10">
@@ -157,11 +164,11 @@ const Cheki = () => {
                   
                   {/* The Actual Member Photo Area */}
                   <div className="relative aspect-square md:aspect-[4/4.5] w-full bg-[#121212] rounded-lg overflow-hidden border border-black/5">
-                    <img 
-                      src={member.image || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"} 
+                    <SkeletonImage
+                      src={member.image || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"}
+                      fallbackSrc="https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"
                       alt={member.nickname}
-                      loading="lazy"
-                      decoding="async"
+                      wrapperClassName="w-full h-full"
                       className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-700"
                     />
                     

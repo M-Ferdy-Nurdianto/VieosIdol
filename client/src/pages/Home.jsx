@@ -4,6 +4,7 @@ import { fetchEvents } from '../api';
 import { ArrowRight, MapPin, Clock, Instagram, Youtube, Cherry, Star } from 'lucide-react';
 import HeroCarousel from '../components/HeroCarousel';
 import Footer from '../components/Footer';
+import SkeletonImage from '../components/SkeletonImage';
 
 const Home = () => {
   const [events, setEvents] = useState([]);
@@ -47,13 +48,12 @@ const Home = () => {
                  className="polaroid-frame w-72 md:w-96 relative z-20"
                >
                   <div className="washi-tape -top-6 left-1/2 -translate-x-1/2 rotate-3 w-32 bg-vibrant-pink/40" />
-                  <img 
-                    src="/photo/about/about-hero.webp" 
-                    alt="VIEOS Live performance" 
-                              loading="lazy"
-                              decoding="async"
-                    className="w-full aspect-[4/5] object-cover"
-                  />
+                           <SkeletonImage
+                              src="/photo/about/about-hero.webp"
+                              alt="VIEOS Live performance"
+                              wrapperClassName="w-full"
+                              className="w-full aspect-[4/5] object-cover"
+                           />
                   <div className="mt-6 handwritten text-vibrant-pink text-2xl md:text-4xl text-center">VIEOS</div>
                </motion.div>
 
@@ -65,13 +65,12 @@ const Home = () => {
                  className="absolute top-10 right-0 md:right-4 polaroid-frame w-48 md:w-64 z-10 hidden md:block"
                >
                   <div className="washi-tape -top-2 -right-10 rotate-45 w-24 bg-vibrant-blue/30" />
-                  <img 
-                    src="/photo/hero/hero 2.png" 
-                    alt="Stage lights" 
-                              loading="lazy"
-                              decoding="async"
-                    className="w-full aspect-square object-cover"
-                  />
+                           <SkeletonImage
+                              src="/photo/hero/hero 2.png"
+                              alt="Stage lights"
+                              wrapperClassName="w-full"
+                              className="w-full aspect-square object-cover"
+                           />
                </motion.div>
 
                {/* Sticky Note - The Numbers */}
