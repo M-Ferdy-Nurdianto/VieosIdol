@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { API_URL } from '../api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -16,7 +17,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/public/login`, {
+      const response = await fetch(`${API_URL}/public/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

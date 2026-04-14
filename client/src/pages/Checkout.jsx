@@ -6,7 +6,7 @@ import {
   CheckCircle2, QrCode, Trash2, Camera, Upload, Image as ImageIcon,
   User, Instagram, MessageCircle, FileText, Calendar
 } from 'lucide-react';
-import { fetchEvents } from '../api';
+import { fetchEvents, API_URL } from '../api';
 import Toast from '../components/Toast';
 import html2canvas from 'html2canvas';
 
@@ -199,7 +199,7 @@ const Checkout = () => {
       if (proof.compressed) {
         const uploadData = new FormData();
         uploadData.append('proof', proof.compressed, 'proof.jpg');
-        const uploadRes = await fetch('http://localhost:5000/api/orders/upload-proof', {
+        const uploadRes = await fetch(`${API_URL}/orders/upload-proof`, {
           method: 'POST',
           body: uploadData
         });
@@ -217,7 +217,7 @@ const Checkout = () => {
       }, {}));
 
       // 3. Create order
-      const orderRes = await fetch('http://localhost:5000/api/orders', {
+      const orderRes = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

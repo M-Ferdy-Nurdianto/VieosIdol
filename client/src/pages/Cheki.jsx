@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { fetchMembers } from '../api';
+import { fetchMembers, API_URL } from '../api';
 import { Plus, Sparkles, LayoutGrid, Users, CheckCircle2, ChevronRight, Tag } from 'lucide-react';
 import Toast from '../components/Toast';
 
@@ -17,7 +17,7 @@ const Cheki = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const eventsResponse = await fetch('http://localhost:5000/api/orders/events');
+        const eventsResponse = await fetch(`${API_URL}/orders/events`);
         const eventsData = await eventsResponse.json();
         setLiveEvents(eventsData);
 

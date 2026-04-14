@@ -9,7 +9,7 @@ import {
    Image, Menu, X, Trash2,
    AlertTriangle
 } from 'lucide-react';
-import { fetchMembers } from '../../api';
+import { fetchMembers, API_URL } from '../../api';
 import DatePicker from '../../components/DatePicker';
 import VIEOSSelect from './components/VIEOSSelect';
 import PriceInput from './components/PriceInput';
@@ -17,7 +17,7 @@ import SidebarItem from './components/SidebarItem';
 import LoadingSpinner from './components/LoadingSpinner';
 import { eventOptionBadge } from './utils';
 
-const ADMIN_API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const ADMIN_API = API_URL;
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -182,9 +182,9 @@ const Admin = () => {
     setLoading(true);
     try {
       const [ordRes, evRes, setRes, memData] = await Promise.all([
-        fetch('http://localhost:5000/api/orders'),
-        fetch('http://localhost:5000/api/orders/events'),
-        fetch('http://localhost:5000/api/orders/settings'),
+            fetch(`${ADMIN_API}/orders`),
+            fetch(`${ADMIN_API}/orders/events`),
+            fetch(`${ADMIN_API}/orders/settings`),
         fetchMembers()
       ]);
       
@@ -251,7 +251,7 @@ const Admin = () => {
   const updateStatus = async (orderId, newStatus) => {
     setStatusUpdatingId(orderId);
     try {
-      await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+         await fetch(`${ADMIN_API}/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -287,7 +287,7 @@ const Admin = () => {
 
     setIsSavingOTS(true);
     try {
-      const res = await fetch('http://localhost:5000/api/orders', {
+         const res = await fetch(`${ADMIN_API}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrder)
@@ -341,7 +341,7 @@ const Admin = () => {
   const updateGlobalSettings = async () => {
     setIsSavingGlobalSettings(true);
     try {
-      const response = await fetch('http://localhost:5000/api/orders/settings', {
+         const response = await fetch(`${ADMIN_API}/orders/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prices: globalSettings.prices })
@@ -361,8 +361,8 @@ const Admin = () => {
     setIsSavingEvent(true);
     try {
       const url = eventModal.mode === 'add' 
-        ? 'http://localhost:5000/api/orders/events' 
-        : `http://localhost:5000/api/orders/events/${eventModal.data.id}`;
+            ? `${ADMIN_API}/orders/events` 
+            : `${ADMIN_API}/orders/events/${eventModal.data.id}`;
       
       const method = eventModal.mode === 'add' ? 'POST' : 'PUT';
       
@@ -485,7 +485,7 @@ const Admin = () => {
   const exportData = async (type, eventId) => {
     setIsExporting(type);
     try {
-       window.open(`http://localhost:5000/api/orders/export/${type}/${eventId}`, '_blank');
+      window.open(`${ADMIN_API}/orders/export/${type}/${eventId}`, '_blank');
        await new Promise(r => setTimeout(r, 1000));
     } finally {
        setIsExporting(null);

@@ -11,11 +11,25 @@ const { standardLimiter } = require('./middleware/security');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
+].filter(Boolean);
+
 // Security Middleware
-app.use(helmet()); 
+app.use(helmet({
+    // Some browsers/extensions warn on experimental Permissions-Policy directives.
+    permissionsPolicy: false
+}));
 app.use(cors({
-    origin: process.env.FRONTEND_URL || '*', // Set this to your Vercel URL in .env
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true
 }));
 app.use(standardLimiter);
@@ -38,7 +52,11 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is floating elegantly on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Server is floating elegantly on port ${PORT}`);
+    });
+}
+
+module.exports = app;
 
