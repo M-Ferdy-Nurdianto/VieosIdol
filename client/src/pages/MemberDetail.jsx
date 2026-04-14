@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchMembers } from '../api';
@@ -6,6 +6,36 @@ import { Sparkles, ChevronRight, Cake, Users, Instagram, Heart, ArrowLeft, Searc
 import SkeletonImage from '../components/SkeletonImage';
 
 const DEFAULT_MEMBER_IMAGE = '/logos/vieos.webp';
+
+const bookFlipVariants = {
+    initial: (direction) => ({
+        opacity: 0,
+        rotateY: direction > 0 ? -72 : 72,
+        x: direction > 0 ? 32 : -32,
+        transformOrigin: direction > 0 ? 'left center' : 'right center',
+        filter: 'blur(2px)'
+    }),
+    animate: {
+        opacity: 1,
+        rotateY: 0,
+        x: 0,
+        filter: 'blur(0px)',
+        transition: {
+            duration: 0.6,
+            ease: [0.22, 1, 0.36, 1]
+        }
+    },
+    exit: (direction) => ({
+        opacity: 0,
+        rotateY: direction > 0 ? 72 : -72,
+        x: direction > 0 ? -24 : 24,
+        transformOrigin: direction > 0 ? 'right center' : 'left center',
+        transition: {
+            duration: 0.42,
+            ease: [0.4, 0, 0.2, 1]
+        }
+    })
+};
 
 const MemberDetail = () => {
     const { id } = useParams();
@@ -15,6 +45,14 @@ const MemberDetail = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [hoveredId, setHoveredId] = useState(null);
     const [initialLoading, setInitialLoading] = useState(true);
+    const [flipDirection, setFlipDirection] = useState(1);
+    const previousIndexRef = useRef(-1);
+
+    const filteredMembers = useMemo(() => {
+        const keyword = searchTerm.trim().toLowerCase();
+        if (!keyword) return members;
+        return members.filter((member) => member.nickname.toLowerCase().includes(keyword));
+    }, [members, searchTerm]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -35,6 +73,19 @@ const MemberDetail = () => {
         };
         loadData();
     }, [id, members]);
+
+    useEffect(() => {
+        if (!selectedMember || members.length === 0) return;
+
+        const nextIndex = members.findIndex((member) => String(member.id) === String(selectedMember.id));
+        if (nextIndex < 0) return;
+
+        if (previousIndexRef.current >= 0 && previousIndexRef.current !== nextIndex) {
+            setFlipDirection(nextIndex > previousIndexRef.current ? 1 : -1);
+        }
+
+        previousIndexRef.current = nextIndex;
+    }, [selectedMember, members]);
 
     if (initialLoading) {
         return (
@@ -63,8 +114,8 @@ const MemberDetail = () => {
             
             {/* Main Content Centered in remaining space */}
             <div className="w-full flex justify-center p-2 md:p-4 lg:p-6 relative z-10 transition-all">
-                <div className="w-full max-w-7xl relative">
-                    <div className="bg-white dark:bg-[#121214] w-full rounded-[1.75rem] md:rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row shadow-2xl relative border border-white/10">
+                <div className="w-full max-w-7xl relative lg:h-[calc(100vh-9rem)]">
+                    <div className="bg-white dark:bg-[#121214] w-full rounded-[1.75rem] md:rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row shadow-2xl relative border border-white/10 lg:h-full">
                         
                         {/* Sidebar - Daftar Member (Left) */}
                         <div className="hidden md:flex w-64 bg-[#f9f9f9] dark:bg-[#0A0A0B] border-r border-gray-100 dark:border-white/5 flex-col overflow-hidden shrink-0">
@@ -81,7 +132,7 @@ const MemberDetail = () => {
                                 </div>
                             </div>
                             <div className="flex-1 overflow-y-auto overflow-x-hidden py-2 custom-scrollbar">
-                                {members.filter(m => m.nickname.toLowerCase().includes(searchTerm.toLowerCase())).map(m => (
+                                {filteredMembers.map(m => (
                                     <button 
                                         key={m.id}
                                         onMouseEnter={() => setHoveredId(m.id)}
@@ -104,15 +155,17 @@ const MemberDetail = () => {
                         </div>
 
                         {/* Main Content Detail with Carousel Animation */}
-                        <div className="flex-1 flex flex-col bg-white dark:bg-[#121214] overflow-hidden relative">
-                            <AnimatePresence mode="wait">
+                        <div className="flex-1 flex flex-col bg-white dark:bg-[#121214] overflow-hidden relative" style={{ perspective: '1800px' }}>
+                            <AnimatePresence mode="wait" initial={false} custom={flipDirection}>
                                 <motion.div
                                     key={selectedMember.id}
-                                    initial={{ x: 80, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    exit={{ x: -80, opacity: 0 }}
-                                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                                    className="overflow-y-auto flex flex-col p-4 sm:p-5 lg:p-8 pt-5 lg:pt-8 pb-5"
+                                    custom={flipDirection}
+                                    variants={bookFlipVariants}
+                                    initial="initial"
+                                    animate="animate"
+                                    exit="exit"
+                                    className="h-full overflow-y-auto flex flex-col p-4 sm:p-5 lg:p-8 pt-5 lg:pt-8 pb-5"
+                                    style={{ backfaceVisibility: 'hidden', transformStyle: 'preserve-3d' }}
                                 >
                                     {/* Header Branding */}
                                     <div className="flex flex-col items-start mb-5 md:mb-4 shrink-0">
@@ -134,7 +187,7 @@ const MemberDetail = () => {
                                     {/* Detail Content Centered */}
                                     <div className="flex flex-col lg:flex-row gap-5 lg:gap-10 items-stretch">
                                         {/* Member Image Card - 4:5 Aspect Ratio bounded by text height */}
-                                        <div className="w-full max-w-[300px] sm:max-w-[340px] lg:max-w-none lg:w-auto lg:h-full flex flex-col items-center justify-center shrink-0 mx-auto lg:mx-0">
+                                        <div className="w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[360px] flex flex-col items-center justify-center shrink-0 mx-auto lg:mx-0">
                                             <motion.div 
                                                 initial={{ scale: 0.95, opacity: 0 }}
                                                 animate={{ scale: 1, opacity: 1 }}

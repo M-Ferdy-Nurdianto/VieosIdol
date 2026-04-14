@@ -15,10 +15,12 @@ const SkeletonImage = ({
 }) => {
     const [currentSrc, setCurrentSrc] = useState(src);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [hasFailed, setHasFailed] = useState(false);
 
     useEffect(() => {
         setCurrentSrc(src);
         setIsLoaded(false);
+        setHasFailed(false);
     }, [src]);
 
     const handleLoad = (event) => {
@@ -34,6 +36,7 @@ const SkeletonImage = ({
             return;
         }
 
+        setHasFailed(true);
         setIsLoaded(true);
         if (typeof onError === 'function') {
             onError(event);
@@ -48,6 +51,11 @@ const SkeletonImage = ({
                     aria-hidden="true"
                 />
             )}
+            {hasFailed && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/5 dark:bg-white/5">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-black/40 dark:text-white/40">No Image</span>
+                </div>
+            )}
             <img
                 src={currentSrc}
                 alt={alt}
@@ -55,7 +63,7 @@ const SkeletonImage = ({
                 decoding={decoding}
                 onLoad={handleLoad}
                 onError={handleError}
-                className={`transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
+                className={`transition-opacity duration-300 ${hasFailed ? 'hidden' : ''} ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
                 {...rest}
             />
         </div>
