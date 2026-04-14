@@ -20,11 +20,32 @@
       "dest": "server/index.js"
     },
     {
-      "handle": "filesystem"
+      "src": "/assets/(.*)",
+      "dest": "/client/assets/$1"
+    },
+    {
+      "src": "/favicons/(.*)",
+      "dest": "/client/favicons/$1"
+    },
+    {
+      "src": "/logos/(.*)",
+      "dest": "/client/logos/$1"
+    },
+    {
+      "src": "/photo/(.*)",
+      "dest": "/client/photo/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/client/favicons/favicon.ico"
+    },
+    {
+      "src": "/",
+      "dest": "/client/index.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/client/index.html"
     }
   ]
 }
