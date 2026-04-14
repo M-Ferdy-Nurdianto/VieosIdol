@@ -7,23 +7,43 @@ import SkeletonImage from '../components/SkeletonImage';
 
 const DEFAULT_MEMBER_IMAGE = '/logos/vieos.webp';
 
-const slideVariants = {
+const desktopSlideVariants = {
     initial: (direction) => ({
-        x: direction > 0 ? 40 : -40
+        x: direction > 0 ? 56 : -56
     }),
     animate: {
         x: 0,
         transition: {
             type: 'spring',
-            stiffness: 260,
-            damping: 30,
-            mass: 0.9
+            stiffness: 300,
+            damping: 32,
+            mass: 0.85
         }
     },
     exit: (direction) => ({
-        x: direction > 0 ? -40 : 40,
+        x: direction > 0 ? -56 : 56,
         transition: {
-            duration: 0.2,
+            duration: 0.24,
+            ease: [0.4, 0, 0.2, 1]
+        }
+    })
+};
+
+const mobileSlideVariants = {
+    initial: (direction) => ({
+        x: direction > 0 ? 26 : -26
+    }),
+    animate: {
+        x: 0,
+        transition: {
+            duration: 0.22,
+            ease: [0.25, 0.1, 0.25, 1]
+        }
+    },
+    exit: (direction) => ({
+        x: direction > 0 ? -26 : 26,
+        transition: {
+            duration: 0.18,
             ease: [0.4, 0, 0.2, 1]
         }
     })
@@ -33,11 +53,11 @@ const MemberDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [members, setMembers] = useState([]);
-    const [selectedMember, setSelectedMember] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [hoveredId, setHoveredId] = useState(null);
     const [initialLoading, setInitialLoading] = useState(true);
     const [flipDirection, setFlipDirection] = useState(1);
+    const [isMobile, setIsMobile] = useState(false);
     const previousIndexRef = useRef(-1);
 
     const filteredMembers = useMemo(() => {
@@ -46,26 +66,48 @@ const MemberDetail = () => {
         return members.filter((member) => member.nickname.toLowerCase().includes(keyword));
     }, [members, searchTerm]);
 
+    const selectedMember = useMemo(() => {
+        return members.find((member) => String(member.id) === String(id)) || null;
+    }, [members, id]);
+
     useEffect(() => {
+        let isMounted = true;
+
         const loadData = async () => {
-            if (members.length === 0) {
+            try {
                 const data = await fetchMembers();
-                const formattedData = data.map((m) => ({
-                    ...m,
-                    themeColor: m.theme_color || m.themeColor
-                }));
+                const formattedData = data
+                    .map((m) => ({
+                        ...m,
+                        themeColor: m.theme_color || m.themeColor
+                    }))
+                    .sort((a, b) => Number(a.id) - Number(b.id));
+
+                if (!isMounted) return;
                 setMembers(formattedData);
-                const member = formattedData.find((m) => m.id.toString() === id);
-                if (member) setSelectedMember(member);
-                setInitialLoading(false);
-            } else {
-                const member = members.find((m) => m.id.toString() === id);
-                if (member) setSelectedMember(member);
+            } finally {
+                if (isMounted) {
+                    setInitialLoading(false);
+                }
             }
         };
 
         loadData();
-    }, [id, members]);
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(max-width: 767px)');
+        const syncMobile = () => setIsMobile(mediaQuery.matches);
+
+        syncMobile();
+        mediaQuery.addEventListener('change', syncMobile);
+
+        return () => mediaQuery.removeEventListener('change', syncMobile);
+    }, []);
 
     useEffect(() => {
         if (!selectedMember || members.length === 0) return;
@@ -148,7 +190,7 @@ const MemberDetail = () => {
                                 <motion.div
                                     key={selectedMember.id}
                                     custom={flipDirection}
-                                    variants={slideVariants}
+                                    variants={isMobile ? mobileSlideVariants : desktopSlideVariants}
                                     initial="initial"
                                     animate="animate"
                                     exit="exit"
