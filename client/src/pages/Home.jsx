@@ -50,6 +50,8 @@ const Home = () => {
                   <img 
                     src="/photo/about/about-hero.webp" 
                     alt="VIEOS Live performance" 
+                              loading="lazy"
+                              decoding="async"
                     className="w-full aspect-[4/5] object-cover"
                   />
                   <div className="mt-6 handwritten text-vibrant-pink text-2xl md:text-4xl text-center">VIEOS</div>
@@ -66,6 +68,8 @@ const Home = () => {
                   <img 
                     src="/photo/hero/hero 2.png" 
                     alt="Stage lights" 
+                              loading="lazy"
+                              decoding="async"
                     className="w-full aspect-square object-cover"
                   />
                </motion.div>

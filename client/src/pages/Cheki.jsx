@@ -160,6 +160,8 @@ const Cheki = () => {
                     <img 
                       src={member.image || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"} 
                       alt={member.nickname}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-700"
                     />
                     
