@@ -1,0 +1,768 @@
+const ExcelJS = require('exceljs');
+const { jsPDF } = require('jspdf');
+require('jspdf-autotable');
+const supabase = require('../supabaseClient');
+
+// =============================================
+// Internal pricing logic
+// =============================================
+/** Maps UI values (member, solo, group) ke kunci harga & enum DB (solo | group). */
+const normalizePricingKind = (chekiType) => {
+    const u = (chekiType || 'solo').toString().toLowerCase();
+    if (u === 'group') return 'group';
+    return 'solo';
+};
+
+/** Nilai yang valid untuk kolom enum public.cheki_type di Postgres. */
+const toDbChekiType = (chekiType) => {
+    return normalizePricingKind(chekiType) === 'group' ? 'group' : 'solo';
+};
+
+const calculateInternalPrice = async (eventId, chekiType, memberId = null) => {
+    const kind = normalizePricingKind(chekiType);
+
+    // 1. Try event-specific pricing
+    const { data: event } = await supabase
+        .from('events')
+        .select('special_prices')
+        .eq('id', eventId)
+        .single();
+
+    if (event && event.special_prices) {
+        if (memberId && event.special_prices[memberId]) {
+            return event.special_prices[memberId];
+        }
+        if (event.special_prices[kind]) {
+            return event.special_prices[kind];
+        }
+    }
+
+    // 2. Fall back to global settings (kunci dari Admin: regular_cheki_solo / regular_cheki_group)
+    const { data: settings } = await supabase
+        .from('settings')
+        .select('prices')
+        .eq('id', 1)
+        .single();
+
+    const p = settings?.prices || {};
+    if (kind === 'group') {
+        return p.regular_cheki_group ?? p.group ?? 35000;
+    }
+    return p.regular_cheki_solo ?? p.solo ?? p.member ?? 30000;
+};
+
+/** 6 digit angka stabil dari id (UUID / bigint) untuk kode publik. */
+const uniqueNumericFromId = (id) => {
+    const s = String(id).replace(/-/g, '');
+    if (/^\d+$/.test(s)) {
+        return s.slice(-6).padStart(6, '0');
+    }
+    let h = 0;
+    for (let i = 0; i < s.length; i += 1) {
+        h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    }
+    return String(Math.abs(h) % 1000000).padStart(6, '0');
+};
+
+/** Kode tampilan: VPO (pre-order online) atau VOTS (booth) + 6 digit + DDMMYY waktu WIB. */
+const buildPublicOrderCode = (mode, createdAt, id) => {
+    const prefix = mode === 'ots' ? 'VOTS' : 'VPO';
+    const d = new Date(createdAt || Date.now());
+    let dd = '00';
+    let mm = '00';
+    let yy = '00';
+    if (!Number.isNaN(d.getTime())) {
+        const formatter = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Asia/Jakarta',
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit'
+        });
+        const parts = formatter.formatToParts(d);
+        const M = Object.fromEntries(parts.filter((p) => p.type !== 'literal').map((p) => [p.type, p.value]));
+        dd = M.day;
+        mm = M.month;
+        yy = M.year;
+    }
+    const uniq = uniqueNumericFromId(id);
+    return `${prefix}${uniq}${dd}${mm}${yy}`;
+};
+
+/** Satukan bentuk baris order (skema baru vs lama) untuk API & export. */
+const normalizeOrderRow = (row) => {
+    if (!row) return row;
+    const nickname = row.nickname ?? row.customer_name ?? '';
+    const contact = row.contact ?? row.whatsapp_number ?? '';
+    const total_price = row.total_price ?? row.total_amount ?? 0;
+    let qty = row.qty ?? 1;
+    let items = Array.isArray(row.items) ? row.items : [];
+    let note = row.note ?? '';
+    let mode = row.mode ?? 'online';
+    let payment_method = row.payment_method ?? 'transfer';
+
+    if (items.length === 0 && row.customer_email && typeof row.customer_email === 'string' && row.customer_email.startsWith('{')) {
+        try {
+            const packed = JSON.parse(row.customer_email);
+            if (packed.vieos_truncated) {
+                if (packed.vieos_qty != null) qty = packed.vieos_qty;
+                if (packed.vieos_mode) mode = packed.vieos_mode;
+                if (packed.vieos_payment) payment_method = packed.vieos_payment;
+                if (packed.vieos_note) note = packed.vieos_note;
+            } else if (Array.isArray(packed.vieos_items)) {
+                items = packed.vieos_items;
+                if (packed.vieos_note) note = packed.vieos_note;
+                if (packed.vieos_qty != null) qty = packed.vieos_qty;
+                if (packed.vieos_mode) mode = packed.vieos_mode;
+                if (packed.vieos_payment) payment_method = packed.vieos_payment;
+            }
+        } catch (_) { /* bukan JSON vieos */ }
+    }
+
+    const member_id = row.member_id ?? (items.length
+        ? items.map((i) => `${i.member_id} x${i.qty}`).join(', ')
+        : '');
+
+    const public_code = buildPublicOrderCode(mode, row.created_at, row.id);
+
+    return {
+        ...row,
+        nickname,
+        contact,
+        total_price,
+        qty,
+        items,
+        member_id,
+        mode,
+        note,
+        payment_method,
+        public_code
+    };
+};
+
+const isOrdersColumnSchemaError = (err) => {
+    const msg = err?.message || err?.details || '';
+    return /Could not find the '[^']+' column of 'orders'/i.test(msg)
+        || /column .*orders.* does not exist/i.test(msg);
+};
+
+// =============================================
+// ORDERS
+// =============================================
+exports.createOrder = async (req, res) => {
+    try {
+        const { event_id, member_id, items, cheki_type, qty, mode, payment_proof_url, nickname, contact, payment_method, note } = req.body;
+
+        let final_member_id = member_id;
+        let final_qty = qty;
+        let total_price = 0;
+
+        if (items && Array.isArray(items) && items.length > 0) {
+            let sum = 0;
+            for (const item of items) {
+                const itemPrice = await calculateInternalPrice(event_id, item.cheki_type || cheki_type, item.member_id);
+                sum += itemPrice * item.qty;
+            }
+            total_price = sum;
+            final_member_id = items.map(i => `${i.member_id} x${i.qty}`).join(', ');
+            final_qty = items.reduce((acc, i) => acc + i.qty, 0);
+        } else {
+            const price = await calculateInternalPrice(event_id, cheki_type);
+            total_price = price * qty;
+        }
+
+        const primaryCheki = items?.length ? (items[0].cheki_type || cheki_type) : cheki_type;
+        const dbChekiType = toDbChekiType(primaryCheki);
+
+        const modernRow = {
+            nickname,
+            contact,
+            event_id,
+            member_id: final_member_id,
+            items: items || [],
+            cheki_type: dbChekiType,
+            qty: final_qty,
+            total_price,
+            mode,
+            payment_method: payment_method || 'cash',
+            payment_proof_url: mode === 'ots' ? null : payment_proof_url,
+            status: mode === 'ots' ? 'paid' : 'pending',
+            note
+        };
+
+        let { data, error } = await supabase
+            .from('orders')
+            .insert(modernRow)
+            .select()
+            .single();
+
+        if (error && isOrdersColumnSchemaError(error)) {
+            const itemsNote = (items && items.length > 0)
+                ? JSON.stringify({ vieos_items: items, vieos_note: note || '', vieos_qty: final_qty, vieos_mode: mode || 'online', vieos_payment: payment_method || 'cash' })
+                : (note || '');
+            let customer_email = itemsNote.length <= 255 ? itemsNote : null;
+            if (itemsNote.length > 255) {
+                console.warn('[orders] Detail item terlalu panjang untuk kolom customer_email (max 255). Total & kontak tetap tersimpan; jalankan db/02_migrate_orders_to_app.sql untuk menyimpan semua item.');
+                customer_email = JSON.stringify({
+                    vieos_truncated: true,
+                    vieos_qty: final_qty,
+                    vieos_mode: mode || 'online',
+                    vieos_payment: payment_method || 'cash',
+                    vieos_note: (note || '').slice(0, 120)
+                });
+            }
+            const legacyRow = {
+                customer_name: nickname,
+                whatsapp_number: contact,
+                event_id,
+                cheki_type: dbChekiType,
+                total_amount: total_price,
+                payment_proof_url: mode === 'ots' ? null : payment_proof_url,
+                status: mode === 'ots' ? 'paid' : 'pending',
+                customer_email
+            };
+            console.warn('[orders] Insert skema baru gagal; memakai kolom lama (customer_name/whatsapp_number/total_amount). Jalankan db/02_migrate_orders_to_app.sql di Supabase untuk skema lengkap.');
+            ({ data, error } = await supabase
+                .from('orders')
+                .insert(legacyRow)
+                .select()
+                .single());
+        }
+
+        if (error) throw error;
+        let payload = normalizeOrderRow(data);
+        if (event_id != null && event_id !== '') {
+            const { data: evData } = await supabase
+                .from('events')
+                .select('name')
+                .eq('id', event_id)
+                .maybeSingle();
+            if (evData?.name) {
+                payload = { ...payload, event_name: evData.name };
+            }
+        }
+        res.status(201).json(payload);
+    } catch (error) {
+        console.error('createOrder error:', error);
+        const hint = isOrdersColumnSchemaError(error)
+            ? ' Jalankan migrasi SQL: db/02_migrate_orders_to_app.sql di Supabase → SQL Editor.'
+            : '';
+        res.status(500).json({ error: `${error.message || error}${hint}` });
+    }
+};
+
+exports.getAllOrders = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.status(200).json((data || []).map(normalizeOrderRow));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.updateOrderStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const { data, error } = await supabase
+            .from('orders')
+            .update({ status })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.status(200).json(normalizeOrderRow(data));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.updateOrderDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nickname, contact, items, payment_method, note, event_id } = req.body;
+
+        let total_price = 0;
+        let final_member_id = '';
+        let final_qty = 0;
+
+        if (items && Array.isArray(items) && items.length > 0) {
+            let sum = 0;
+            for (const item of items) {
+                const itemPrice = await calculateInternalPrice(event_id, item.cheki_type || 'solo', item.member_id);
+                sum += itemPrice * item.qty;
+            }
+            total_price = sum;
+            final_member_id = items.map(i => `${i.member_id} x${i.qty}`).join(', ');
+            final_qty = items.reduce((acc, i) => acc + i.qty, 0);
+        }
+
+        const { data, error } = await supabase
+            .from('orders')
+            .update({
+                nickname,
+                contact,
+                items,
+                member_id: final_member_id,
+                qty: final_qty,
+                total_price,
+                payment_method,
+                note
+            })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.status(200).json(normalizeOrderRow(data));
+    } catch (error) {
+        console.error('updateOrderDetails error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// =============================================
+// IMAGE UPLOAD (Payment Proof)
+// =============================================
+exports.uploadProof = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const fileName = `proof_${Date.now()}_${req.file.originalname}`;
+        const { data, error } = await supabase.storage
+            .from('payment-proofs')
+            .upload(fileName, req.file.buffer, {
+                contentType: req.file.mimetype,
+                upsert: false
+            });
+
+        if (error) throw error;
+
+        const { data: urlData } = supabase.storage
+            .from('payment-proofs')
+            .getPublicUrl(fileName);
+
+        res.status(200).json({ url: urlData.publicUrl });
+    } catch (error) {
+        console.error('uploadProof error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// =============================================
+// EVENTS
+// =============================================
+exports.getAllEvents = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('events')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Auto-mark past events as done
+        const now = new Date();
+        const updatedEvents = data.map(ev => {
+            if (ev.po_deadline && new Date(ev.po_deadline) < now && ev.status !== 'done') {
+                return { ...ev, status: 'done' };
+            }
+            return ev;
+        });
+
+        res.status(200).json(updatedEvents);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.addEvent = async (req, res) => {
+    try {
+        const payload = {
+            name: req.body.name,
+            type: req.body.type === 'standard' ? 'regular' : 'special',
+            event_date: req.body.date,
+            event_time: req.body.time || '',
+            location: req.body.location || '',
+            // Additional fields (you will need to run an ALTER TABLE to add these if they don't exist, see chat)
+            status: req.body.status || 'ongoing',
+            po_deadline: req.body.po_deadline || null,
+            theme: req.body.theme || '',
+            lineup: req.body.lineup || ['GROUP'],
+            available_members: req.body.available_members || ['GROUP'],
+            special_prices: req.body.type === 'special' ? {
+                "solo": parseInt(req.body.special_solo_price) || 30000,
+                "group": parseInt(req.body.special_group_price) || 35000
+            } : null
+        };
+
+        const { data, error } = await supabase
+            .from('events')
+            .insert(payload)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.status(201).json(data);
+    } catch (error) {
+        console.error('addEvent error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.updateEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const payload = {
+            name: req.body.name,
+            type: req.body.type === 'standard' ? 'regular' : 'special',
+            event_date: req.body.date,
+            event_time: req.body.time || '',
+            location: req.body.location || '',
+            status: req.body.status || 'ongoing',
+            po_deadline: req.body.po_deadline || null,
+            theme: req.body.theme || '',
+            lineup: req.body.lineup || ['GROUP'],
+            available_members: req.body.available_members || ['GROUP'],
+            special_prices: req.body.type === 'special' ? {
+                "solo": parseInt(req.body.special_solo_price) || 30000,
+                "group": parseInt(req.body.special_group_price) || 35000
+            } : null
+        };
+
+        const { data, error } = await supabase
+            .from('events')
+            .update(payload)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.deleteEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { error } = await supabase
+            .from('events')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        res.status(200).json({ message: 'Event deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// =============================================
+// SETTINGS
+// =============================================
+exports.getSettings = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('settings')
+            .select('*')
+            .eq('id', 1)
+            .single();
+
+        // Even if error (e.g. table doesn't exist yet), return default values instead of throwing 500
+        res.status(200).json(data || { prices: { member: 30000, group: 35000 } });
+    } catch (error) {
+        // Fallback if something critically fails
+        res.status(200).json({ prices: { member: 30000, group: 35000 } });
+    }
+};
+
+exports.updateSettings = async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('settings')
+            .update(req.body)
+            .eq('id', 1)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// =============================================
+// KEEP ALIVE
+// =============================================
+exports.getKeepAlive = (req, res) => {
+    res.status(200).send('Alive and connected to Supabase.');
+};
+
+// =============================================
+// EXPORT: EXCEL
+// =============================================
+exports.exportToExcel = async (req, res) => {
+    try {
+        const { eventId } = req.params;
+
+        // Get event info
+        let event = null;
+        if (eventId !== 'all') {
+            const { data } = await supabase.from('events').select('*').eq('id', eventId).single();
+            event = data;
+        }
+
+        // Get orders
+        let query = supabase.from('orders').select('*').neq('status', 'pending');
+        if (eventId !== 'all') query = query.eq('event_id', eventId);
+        const { data: eventOrdersRaw, error } = await query;
+        if (error) throw error;
+        const eventOrders = (eventOrdersRaw || []).map(normalizeOrderRow);
+
+        const workbook = new ExcelJS.Workbook();
+
+        // SHEET 1: SUMMARY
+        const summarySheet = workbook.addWorksheet('Event Summary');
+        summarySheet.columns = [
+            { header: 'Metric', key: 'metric', width: 25 },
+            { header: 'Value', key: 'value', width: 20 }
+        ];
+
+        const totalSales = eventOrders.reduce((acc, o) => acc + o.total_price, 0);
+        const totalQty = eventOrders.reduce((acc, o) => acc + o.qty, 0);
+
+        summarySheet.addRow({ metric: 'Event Name', value: event ? event.name : 'All Events' });
+        summarySheet.addRow({ metric: 'Total Revenue', value: totalSales });
+        summarySheet.addRow({ metric: 'Total Polaroid Sold', value: totalQty });
+        summarySheet.addRow({});
+
+        summarySheet.addRow({ metric: 'MEMBER BREAKDOWN', value: '' });
+        const memberStats = {};
+        for (const o of eventOrders) {
+            const members = (o.member_id || '').split(', ');
+            for (const mStr of members) {
+                const parts = mStr.split(' x');
+                const name = parts[0];
+                const qty = parts[1] ? parseInt(parts[1]) : o.qty;
+                if (!memberStats[name]) memberStats[name] = { qty: 0, revenue: 0 };
+                memberStats[name].qty += qty;
+                const price = await calculateInternalPrice(o.event_id, o.cheki_type, name);
+                memberStats[name].revenue += (price * qty);
+            }
+        }
+
+        summarySheet.addRow({ metric: 'Member', value: 'Qty Sold' });
+        Object.entries(memberStats).forEach(([name, stats]) => {
+            summarySheet.addRow({ metric: name, value: stats.qty });
+            summarySheet.lastRow.getCell(3).value = stats.revenue;
+        });
+
+        summarySheet.getRow(1).font = { bold: true };
+        summarySheet.getColumn(2).numFmt = '#,##0';
+        summarySheet.getColumn(3).numFmt = '"Rp "#,##0';
+
+        // SHEET 2: RAW DATA
+        const detailSheet = workbook.addWorksheet('Order Details');
+        detailSheet.columns = [
+            { header: 'Kode order', key: 'public_code', width: 22 },
+            { header: 'Nickname', key: 'nickname', width: 20 },
+            { header: 'Contact', key: 'contact', width: 25 },
+            { header: 'Items', key: 'member_id', width: 35 },
+            { header: 'Qty', key: 'qty', width: 8 },
+            { header: 'Total Price', key: 'total_price', width: 15 },
+            { header: 'Payment', key: 'payment_method', width: 12 },
+            { header: 'Status', key: 'status', width: 12 },
+            { header: 'Date', key: 'created_at', width: 20 },
+        ];
+
+        eventOrders.forEach((order) => {
+            detailSheet.addRow({
+                ...order,
+                public_code: order.public_code || buildPublicOrderCode(order.mode, order.created_at, order.id),
+                created_at: new Date(order.created_at).toLocaleString('id-ID')
+            });
+        });
+
+        detailSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE96B' } };
+        detailSheet.getRow(1).font = { bold: true };
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=VIEOS_Report_${event ? event.name.replace(/\s+/g, '_') : 'All'}.xlsx`);
+
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) {
+        console.error('exportToExcel error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// =============================================
+// EXPORT: PDF
+// =============================================
+exports.exportToPdf = async (req, res) => {
+    try {
+        const { eventId } = req.params;
+
+        let event = null;
+        if (eventId !== 'all') {
+            const { data } = await supabase.from('events').select('*').eq('id', eventId).single();
+            event = data;
+        }
+
+        let query = supabase.from('orders').select('*').neq('status', 'pending');
+        if (eventId !== 'all') query = query.eq('event_id', eventId);
+        const { data: eventOrdersRaw, error } = await query;
+        if (error) throw error;
+        const eventOrders = (eventOrdersRaw || []).map(normalizeOrderRow);
+
+        const doc = new jsPDF();
+        const pink = [255, 41, 117];
+        const dark = [18, 18, 20];
+
+        // Header Section
+        doc.setFillColor(...dark);
+        doc.rect(0, 0, 210, 45, 'F');
+
+        doc.setFontSize(28);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.text("VIEOS", 14, 25);
+        doc.setTextColor(...pink);
+        doc.text(".REPORT", 48, 25);
+
+        doc.setFontSize(10);
+        doc.setTextColor(150, 150, 150);
+        doc.setFont("helvetica", "normal");
+        doc.text(`OFFICIAL SALES SUMMARY \u2022 ${new Date().toLocaleDateString('id-ID')}`, 14, 35);
+
+        // Event Info Box
+        doc.setFillColor(245, 245, 245);
+        doc.rect(140, 15, 56, 20, 'F');
+        doc.setTextColor(100);
+        doc.setFontSize(8);
+        doc.text("EVENT", 145, 22);
+        doc.setTextColor(0);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text(event ? event.name : 'ALL EVENTS', 145, 28, { maxWidth: 46 });
+
+        // Analytics
+        const totalSales = eventOrders.reduce((acc, o) => acc + o.total_price, 0);
+        const totalQty = eventOrders.reduce((acc, o) => acc + o.qty, 0);
+        const otsCount = eventOrders.filter(o => o.mode === 'ots').length;
+        const poCount = eventOrders.filter(o => o.mode !== 'ots').length;
+
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.text("SALES OVERVIEW", 14, 60);
+        doc.setDrawColor(...pink);
+        doc.setLineWidth(1);
+        doc.line(14, 62, 30, 62);
+
+        const drawCard = (x, y, label, value) => {
+            doc.setFillColor(250, 250, 250);
+            doc.roundedRect(x, y, 45, 25, 2, 2, 'F');
+            doc.setTextColor(100);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.text(label, x + 5, y + 8);
+            doc.setTextColor(...pink);
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text(value, x + 5, y + 18);
+        };
+
+        drawCard(14, 68, "TOTAL REVENUE", `Rp ${totalSales.toLocaleString()}`);
+        drawCard(63, 68, "TOTAL SOLD", `${totalQty} units`);
+        drawCard(112, 68, "BOOTH (OTS)", `${otsCount} orders`);
+        drawCard(161, 68, "PRE-ORDER", `${poCount} orders`);
+
+        // Member Performance
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.text("MEMBER PERFORMANCE", 14, 110);
+
+        const memberStats = {};
+        for (const o of eventOrders) {
+            const membersList = (o.member_id || '').split(', ');
+            for (const mStr of membersList) {
+                const parts = mStr.split(' x');
+                const name = parts[0];
+                const qty = parts[1] ? parseInt(parts[1]) : o.qty;
+                if (!memberStats[name]) memberStats[name] = { qty: 0, revenue: 0 };
+                memberStats[name].qty += qty;
+                const price = await calculateInternalPrice(o.event_id, o.cheki_type, name);
+                memberStats[name].revenue += (price * qty);
+            }
+        }
+
+        const summaryData = Object.entries(memberStats).map(([name, stats]) => [
+            name, stats.qty, `Rp ${stats.revenue.toLocaleString()}`
+        ]);
+
+        doc.autoTable({
+            head: [['Member / Lineup', 'Qty Sold', 'Revenue']],
+            body: summaryData,
+            startY: 115,
+            theme: 'grid',
+            headStyles: { fillColor: pink, textColor: [255, 255, 255], fontStyle: 'bold' },
+            styles: { fontSize: 9, cellPadding: 4 },
+            columnStyles: { 2: { halign: 'right', fontStyle: 'bold' } }
+        });
+
+        // Transaction Details
+        doc.addPage();
+        doc.setFillColor(...dark);
+        doc.rect(0, 0, 210, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.text("TRANSACTION DETAILS ARCHIVE", 14, 13);
+
+        const detailData = eventOrders.map((o) => [
+            o.public_code || buildPublicOrderCode(o.mode, o.created_at, o.id),
+            o.nickname,
+            o.mode.toUpperCase(),
+            o.member_id,
+            `Rp ${o.total_price.toLocaleString()}`,
+            o.status.toUpperCase() === 'PAID' ? 'CHEKE' : o.status.toUpperCase() === 'PENDING' ? 'UNCEK' : 'DONE'
+        ]);
+
+        doc.autoTable({
+            head: [['Kode', 'Customer', 'Type', 'Items', 'Amount', 'Status']],
+            body: detailData,
+            startY: 25,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [60, 60, 60], textColor: [255, 255, 255] },
+            columnStyles: { 4: { halign: 'right', fontStyle: 'bold', textColor: pink } }
+        });
+
+        // Footer
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setTextColor(150);
+            doc.text(`Page ${i} of ${pageCount} \u2022 VIEOS Official Admin System`, 14, 285);
+        }
+
+        const pdfOutput = doc.output();
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=VIEOS_Report_${eventId}.pdf`);
+        res.send(Buffer.from(pdfOutput, 'binary'));
+    } catch (error) {
+        console.error('exportToPdf error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
