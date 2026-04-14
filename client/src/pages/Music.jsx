@@ -17,7 +17,7 @@ const Music = () => {
     }, []);
 
     return (
-        <div className="min-h-screen relative pt-24 md:pt-32 pb-24 md:pb-64">
+        <div className="min-h-screen relative pt-24 md:pt-32 pb-24 md:pb-64 overflow-x-clip">
             {/* Background Effects */}
             <div className="playful-bg" />
             {!isMobile && <div className="grain-overlay" />}
@@ -26,13 +26,13 @@ const Music = () => {
             <div className="absolute top-[5%] right-[-10%] w-[260px] h-[260px] md:w-[600px] md:h-[600px] bg-vibrant-pink/10 rounded-full blur-[90px] md:blur-[160px] -z-0 pointer-events-none" />
             <div className="absolute bottom-[10%] left-[-15%] w-[280px] h-[280px] md:w-[800px] md:h-[800px] bg-vibrant-blue/10 rounded-full blur-[90px] md:blur-[140px] -z-0 pointer-events-none" />
 
-            <div className="max-w-5xl mx-auto px-6 md:px-8 relative z-10">
+            <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 relative z-10 overflow-x-clip">
                 {/* Unified Header */}
                 <div className="text-center mb-12 md:mb-16">
                     <motion.div 
                         initial={{ scale: 0.5, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="inline-flex items-center gap-3 px-4 py-1.5 text-[10px] font-black tracking-[0.4em] uppercase mb-8 rounded-full border"
+                        className="inline-flex max-w-full items-center gap-2 md:gap-3 px-3 md:px-4 py-1.5 text-[9px] md:text-[10px] font-black tracking-[0.22em] md:tracking-[0.4em] uppercase mb-8 rounded-full border"
                         style={{ 
                             backgroundColor: 'var(--accent-soft)', 
                             borderColor: 'var(--border-main)',
@@ -70,12 +70,12 @@ const Music = () => {
                 </motion.div>
 
                 {/* Bottom CTA */}
-                <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
+                <div className="flex w-full flex-col sm:flex-row justify-center items-center gap-4 md:gap-6">
                     <a 
                         href="https://open.spotify.com/artist/31nPW3pzHgH3ROiGUFuKJm?si=ogolGHJcTSyQGg-x0tWJuQ" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="vibrant-button inline-flex items-center gap-4 px-12 py-6 group shadow-2xl"
+                        className="vibrant-button w-full sm:w-auto inline-flex items-center gap-3 px-8 md:px-12 py-5 md:py-6 group shadow-2xl"
                         style={{ 
                             boxShadow: '0 20px 40px -10px rgba(255, 27, 141, 0.3)' 
                         }}
@@ -88,7 +88,7 @@ const Music = () => {
                         href="https://www.youtube.com/@VIEOS.official/videos" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="vibrant-button !bg-red-600 hover:!bg-red-700 inline-flex items-center gap-4 px-12 py-6 group shadow-2xl"
+                        className="vibrant-button w-full sm:w-auto !bg-red-600 hover:!bg-red-700 inline-flex items-center gap-3 px-8 md:px-12 py-5 md:py-6 group shadow-2xl"
                         style={{ 
                             boxShadow: '0 20px 40px -10px rgba(220, 38, 38, 0.3)' 
                         }}

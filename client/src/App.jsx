@@ -23,6 +23,10 @@ function App() {
   const isAdmin = location.pathname.startsWith('/admin') || location.pathname === '/login';
 
   React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname, location.search]);
+
+  React.useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isDesktop = window.matchMedia('(min-width: 768px)').matches;
     if (reduceMotion || !isDesktop) return undefined;
@@ -52,7 +56,7 @@ function App() {
   }, []);
 
   return (
-    <div className="App selection:bg-gold/30">
+    <div className="App selection:bg-gold/30 overflow-x-hidden">
       {/* Grainy Texture Overlay */}
       <div className="grain-overlay" />
       

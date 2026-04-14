@@ -46,6 +46,8 @@
         scroll-behavior: smooth;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        width: 100%;
+        overflow-x: clip;
     }
 
     body {
@@ -53,8 +55,14 @@
         font-family: 'Plus Jakarta Sans', sans-serif;
         background-color: var(--bg-main);
         color: var(--text-main);
-        overflow-x: hidden;
+        width: 100%;
+        overflow-x: clip;
         line-height: 1.6;
+    }
+
+    #root {
+        width: 100%;
+        overflow-x: clip;
     }
 
     h1,
