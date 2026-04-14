@@ -14,9 +14,15 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
     process.env.FRONTEND_URL,
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null,
+    'https://vieos-idol.vercel.app',
     'http://localhost:5173',
     'http://127.0.0.1:5173'
 ].filter(Boolean);
+
+const isAllowedVercelPreviewOrigin = (origin) => {
+    return /^https:\/\/vieos-idol(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(origin);
+};
 
 // Security Middleware
 app.use(helmet({
@@ -26,7 +32,9 @@ app.use(helmet({
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
+        if (allowedOrigins.includes(origin) || isAllowedVercelPreviewOrigin(origin)) {
+            return callback(null, true);
+        }
         return callback(new Error(`CORS blocked for origin: ${origin}`));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -45,9 +53,13 @@ app.get('/api/keep-alive', getKeepAlive);
 // Global Error Handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({
+    const isCorsError = typeof err.message === 'string' && err.message.startsWith('CORS blocked for origin:');
+    const statusCode = isCorsError ? 403 : 500;
+    const publicMessage = isCorsError ? 'CORS origin not allowed' : 'Internal Server Error';
+
+    res.status(statusCode).json({
         error: process.env.NODE_ENV === 'production' 
-            ? 'Internal Server Error' 
+            ? publicMessage
             : err.message
     });
 });
