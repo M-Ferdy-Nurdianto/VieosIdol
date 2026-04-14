@@ -37,6 +37,29 @@ const bookFlipVariants = {
     })
 };
 
+const mobileSlideVariants = {
+    initial: (direction) => ({
+        opacity: 0,
+        x: direction > 0 ? 18 : -18
+    }),
+    animate: {
+        opacity: 1,
+        x: 0,
+        transition: {
+            duration: 0.28,
+            ease: [0.22, 1, 0.36, 1]
+        }
+    },
+    exit: (direction) => ({
+        opacity: 0,
+        x: direction > 0 ? -14 : 14,
+        transition: {
+            duration: 0.2,
+            ease: [0.4, 0, 0.2, 1]
+        }
+    })
+};
+
 const MemberDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -46,6 +69,7 @@ const MemberDetail = () => {
     const [hoveredId, setHoveredId] = useState(null);
     const [initialLoading, setInitialLoading] = useState(true);
     const [flipDirection, setFlipDirection] = useState(1);
+    const [isMobile, setIsMobile] = useState(false);
     const previousIndexRef = useRef(-1);
 
     const filteredMembers = useMemo(() => {
@@ -86,6 +110,16 @@ const MemberDetail = () => {
 
         previousIndexRef.current = nextIndex;
     }, [selectedMember, members]);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(max-width: 767px)');
+        const applyMobileMode = () => setIsMobile(mediaQuery.matches);
+
+        applyMobileMode();
+        mediaQuery.addEventListener('change', applyMobileMode);
+
+        return () => mediaQuery.removeEventListener('change', applyMobileMode);
+    }, []);
 
     if (initialLoading) {
         return (
@@ -155,17 +189,20 @@ const MemberDetail = () => {
                         </div>
 
                         {/* Main Content Detail with Carousel Animation */}
-                        <div className="flex-1 flex flex-col bg-white dark:bg-[#121214] overflow-hidden relative" style={{ perspective: '1800px' }}>
+                        <div
+                            className="flex-1 flex flex-col bg-white dark:bg-[#121214] overflow-hidden relative"
+                            style={{ perspective: isMobile ? 'none' : '1800px' }}
+                        >
                             <AnimatePresence mode="wait" initial={false} custom={flipDirection}>
                                 <motion.div
                                     key={selectedMember.id}
                                     custom={flipDirection}
-                                    variants={bookFlipVariants}
+                                    variants={isMobile ? mobileSlideVariants : bookFlipVariants}
                                     initial="initial"
                                     animate="animate"
                                     exit="exit"
                                     className="h-full overflow-y-auto flex flex-col p-4 sm:p-5 lg:p-8 pt-5 lg:pt-8 pb-5"
-                                    style={{ backfaceVisibility: 'hidden', transformStyle: 'preserve-3d' }}
+                                    style={isMobile ? undefined : { backfaceVisibility: 'hidden', transformStyle: 'preserve-3d' }}
                                 >
                                     {/* Header Branding */}
                                     <div className="flex flex-col items-start mb-5 md:mb-4 shrink-0">
