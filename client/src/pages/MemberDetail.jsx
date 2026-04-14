@@ -7,52 +7,21 @@ import SkeletonImage from '../components/SkeletonImage';
 
 const DEFAULT_MEMBER_IMAGE = '/logos/vieos.webp';
 
-const bookFlipVariants = {
+const slideVariants = {
     initial: (direction) => ({
-        opacity: 0,
-        rotateY: direction > 0 ? -72 : 72,
-        x: direction > 0 ? 32 : -32,
-        transformOrigin: direction > 0 ? 'left center' : 'right center',
-        filter: 'blur(2px)'
+        x: direction > 0 ? 40 : -40
     }),
     animate: {
-        opacity: 1,
-        rotateY: 0,
         x: 0,
-        filter: 'blur(0px)',
         transition: {
-            duration: 0.6,
-            ease: [0.22, 1, 0.36, 1]
+            type: 'spring',
+            stiffness: 260,
+            damping: 30,
+            mass: 0.9
         }
     },
     exit: (direction) => ({
-        opacity: 0,
-        rotateY: direction > 0 ? 72 : -72,
-        x: direction > 0 ? -24 : 24,
-        transformOrigin: direction > 0 ? 'right center' : 'left center',
-        transition: {
-            duration: 0.42,
-            ease: [0.4, 0, 0.2, 1]
-        }
-    })
-};
-
-const mobileSlideVariants = {
-    initial: (direction) => ({
-        opacity: 0,
-        x: direction > 0 ? 18 : -18
-    }),
-    animate: {
-        opacity: 1,
-        x: 0,
-        transition: {
-            duration: 0.28,
-            ease: [0.22, 1, 0.36, 1]
-        }
-    },
-    exit: (direction) => ({
-        opacity: 0,
-        x: direction > 0 ? -14 : 14,
+        x: direction > 0 ? -40 : 40,
         transition: {
             duration: 0.2,
             ease: [0.4, 0, 0.2, 1]
@@ -69,7 +38,6 @@ const MemberDetail = () => {
     const [hoveredId, setHoveredId] = useState(null);
     const [initialLoading, setInitialLoading] = useState(true);
     const [flipDirection, setFlipDirection] = useState(1);
-    const [isMobile, setIsMobile] = useState(false);
     const previousIndexRef = useRef(-1);
 
     const filteredMembers = useMemo(() => {
@@ -82,19 +50,20 @@ const MemberDetail = () => {
         const loadData = async () => {
             if (members.length === 0) {
                 const data = await fetchMembers();
-                const formattedData = data.map(m => ({
+                const formattedData = data.map((m) => ({
                     ...m,
                     themeColor: m.theme_color || m.themeColor
                 }));
                 setMembers(formattedData);
-                const member = formattedData.find(m => m.id.toString() === id);
+                const member = formattedData.find((m) => m.id.toString() === id);
                 if (member) setSelectedMember(member);
                 setInitialLoading(false);
             } else {
-                const member = members.find(m => m.id.toString() === id);
+                const member = members.find((m) => m.id.toString() === id);
                 if (member) setSelectedMember(member);
             }
         };
+
         loadData();
     }, [id, members]);
 
@@ -110,16 +79,6 @@ const MemberDetail = () => {
 
         previousIndexRef.current = nextIndex;
     }, [selectedMember, members]);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(max-width: 767px)');
-        const applyMobileMode = () => setIsMobile(mediaQuery.matches);
-
-        applyMobileMode();
-        mediaQuery.addEventListener('change', applyMobileMode);
-
-        return () => mediaQuery.removeEventListener('change', applyMobileMode);
-    }, []);
 
     if (initialLoading) {
         return (
@@ -143,41 +102,37 @@ const MemberDetail = () => {
 
     return (
         <div className="min-h-screen w-full flex flex-col bg-gray-50 dark:bg-[#0A0E17] relative overflow-x-hidden pt-20 lg:pt-24 pb-6">
-            {/* Background Effects */}
             <div className="playful-bg opacity-30" />
-            
-            {/* Main Content Centered in remaining space */}
+
             <div className="w-full flex justify-center p-2 md:p-4 lg:p-6 relative z-10 transition-all">
                 <div className="w-full max-w-7xl relative lg:h-[calc(100vh-9rem)]">
                     <div className="bg-white dark:bg-[#121214] w-full rounded-[1.75rem] md:rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row shadow-2xl relative border border-white/10 lg:h-full">
-                        
-                        {/* Sidebar - Daftar Member (Left) */}
                         <div className="hidden md:flex w-64 bg-[#f9f9f9] dark:bg-[#0A0A0B] border-r border-gray-100 dark:border-white/5 flex-col overflow-hidden shrink-0">
                             <div className="p-8 border-b border-gray-100 dark:border-white/5 pt-10">
                                 <h3 className="text-sm font-black text-gray-900 dark:text-white tracking-tight uppercase">Daftar Member</h3>
                                 <div className="mt-4 relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                                    <input 
+                                    <input
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        placeholder="Cari member..." 
+                                        placeholder="Cari member..."
                                         className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg pl-9 pr-4 py-2 text-[10px] outline-none focus:border-vibrant-pink transition-colors"
                                     />
                                 </div>
                             </div>
                             <div className="flex-1 overflow-y-auto overflow-x-hidden py-2 custom-scrollbar">
-                                {filteredMembers.map(m => (
-                                    <button 
+                                {filteredMembers.map((m) => (
+                                    <button
                                         key={m.id}
                                         onMouseEnter={() => setHoveredId(m.id)}
                                         onMouseLeave={() => setHoveredId(null)}
                                         onClick={() => navigate(`/members/${m.id}`)}
                                         className={`w-full text-left px-8 py-3 text-[10px] font-black uppercase transition-all duration-300 border-l-4 flex items-center justify-between group ${
-                                            selectedMember.id === m.id 
-                                            ? 'bg-gray-100 dark:bg-white/5' 
-                                            : 'text-gray-400 dark:text-white/20 border-transparent hover:bg-gray-50 dark:hover:bg-white/[0.02]'
+                                            selectedMember.id === m.id
+                                                ? 'bg-gray-100 dark:bg-white/5'
+                                                : 'text-gray-400 dark:text-white/20 border-transparent hover:bg-gray-50 dark:hover:bg-white/[0.02]'
                                         }`}
-                                        style={{ 
+                                        style={{
                                             color: (selectedMember.id === m.id || hoveredId === m.id) ? (m.themeColor || '#ff1b8d') : '',
                                             borderLeftColor: selectedMember.id === m.id ? (selectedMember.themeColor || '#ff1b8d') : 'transparent'
                                         }}
@@ -188,23 +143,17 @@ const MemberDetail = () => {
                             </div>
                         </div>
 
-                        {/* Main Content Detail with Carousel Animation */}
-                        <div
-                            className="flex-1 flex flex-col bg-white dark:bg-[#121214] overflow-hidden relative"
-                            style={{ perspective: isMobile ? 'none' : '1800px' }}
-                        >
+                        <div className="flex-1 flex flex-col bg-white dark:bg-[#121214] overflow-hidden relative">
                             <AnimatePresence mode="wait" initial={false} custom={flipDirection}>
                                 <motion.div
                                     key={selectedMember.id}
                                     custom={flipDirection}
-                                    variants={isMobile ? mobileSlideVariants : bookFlipVariants}
+                                    variants={slideVariants}
                                     initial="initial"
                                     animate="animate"
                                     exit="exit"
                                     className="h-full overflow-y-auto flex flex-col p-4 sm:p-5 lg:p-8 pt-5 lg:pt-8 pb-5"
-                                    style={isMobile ? undefined : { backfaceVisibility: 'hidden', transformStyle: 'preserve-3d' }}
                                 >
-                                    {/* Header Branding */}
                                     <div className="flex flex-col items-start mb-5 md:mb-4 shrink-0">
                                         <div className="flex items-center gap-3 mb-2">
                                             <Link to="/members" className="p-2 bg-gray-100 dark:bg-white/5 text-gray-400 rounded-full hover:bg-vibrant-pink hover:text-white transition-all transform hover:scale-110">
@@ -221,20 +170,18 @@ const MemberDetail = () => {
                                         </div>
                                     </div>
 
-                                    {/* Detail Content Centered */}
                                     <div className="flex flex-col lg:flex-row gap-5 lg:gap-10 items-stretch">
-                                        {/* Member Image Card - 4:5 Aspect Ratio bounded by text height */}
                                         <div className="w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[360px] flex flex-col items-center justify-center shrink-0 mx-auto lg:mx-0">
-                                            <motion.div 
+                                            <motion.div
                                                 initial={{ scale: 0.95, opacity: 0 }}
                                                 animate={{ scale: 1, opacity: 1 }}
                                                 transition={{ delay: 0.2 }}
-                                                className="relative p-2 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col w-full aspect-[4/5]" 
+                                                className="relative p-2 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col w-full aspect-[4/5]"
                                                 style={{ backgroundColor: selectedMember.themeColor }}
                                             >
                                                 <Sparkles className="absolute top-4 left-4 text-white opacity-80 animate-pulse" size={16} fill="white" />
                                                 <Sparkles className="absolute bottom-4 right-4 text-white opacity-80 animate-pulse" size={16} fill="white" />
-                                                
+
                                                 <div className="bg-white p-1.5 rounded-2xl flex flex-col flex-1 w-full h-full min-h-0">
                                                     <div className="relative rounded-xl overflow-hidden bg-gray-100 group flex-1 w-full h-full min-h-0">
                                                         <SkeletonImage
@@ -246,11 +193,11 @@ const MemberDetail = () => {
                                                         />
                                                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-8 flex flex-col justify-end translate-y-2 group-hover:translate-y-0 transition-transform">
                                                             <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] block mb-2">
-                                                                {selectedMember.role && selectedMember.role !== "Member" 
-                                                                    ? selectedMember.role 
-                                                                    : (selectedMember.fullname || selectedMember.name || "").includes(',') 
-                                                                        ? (selectedMember.fullname || selectedMember.name).split(',')[1].trim() 
-                                                                        : (selectedMember.gelar || "VIEOS")}
+                                                                {selectedMember.role && selectedMember.role !== 'Member'
+                                                                    ? selectedMember.role
+                                                                    : (selectedMember.fullname || selectedMember.name || '').includes(',')
+                                                                        ? (selectedMember.fullname || selectedMember.name).split(',')[1].trim()
+                                                                        : (selectedMember.gelar || 'VIEOS')}
                                                             </span>
                                                             <h4 className="text-4xl font-brand italic text-white leading-none capitalize">
                                                                 {selectedMember.nickname.toLowerCase()}
@@ -261,7 +208,6 @@ const MemberDetail = () => {
                                             </motion.div>
                                         </div>
 
-                                        {/* Member Info */}
                                         <div className="flex-1 w-full flex flex-col gap-4 pb-2">
                                             <div className="mb-4">
                                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] block mb-1">Selection Star</span>
@@ -281,7 +227,7 @@ const MemberDetail = () => {
                                                     </div>
                                                     <div>
                                                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Birthday</span>
-                                                        <span className="text-sm font-bold text-gray-800 dark:text-white tracking-tight">{selectedMember.birth_date || "-"}</span>
+                                                        <span className="text-sm font-bold text-gray-800 dark:text-white tracking-tight">{selectedMember.birth_date || '-'}</span>
                                                     </div>
                                                 </div>
                                                 <div className="bg-[#fcfcfc] dark:bg-[#1A1A1D] border border-gray-100 dark:border-white/5 p-4 rounded-[1.5rem] flex items-center gap-4 hover:border-vibrant-pink/40 transition-all group">
@@ -291,11 +237,11 @@ const MemberDetail = () => {
                                                     <div>
                                                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Position</span>
                                                         <span className="text-sm font-bold text-gray-800 dark:text-white tracking-tight">
-                                                            {selectedMember.role && selectedMember.role !== "Member" 
-                                                                ? selectedMember.role 
-                                                                : (selectedMember.fullname || selectedMember.name || "").includes(',') 
-                                                                    ? (selectedMember.fullname || selectedMember.name).split(',')[1].trim() 
-                                                                    : (selectedMember.gelar || "Member")}
+                                                            {selectedMember.role && selectedMember.role !== 'Member'
+                                                                ? selectedMember.role
+                                                                : (selectedMember.fullname || selectedMember.name || '').includes(',')
+                                                                    ? (selectedMember.fullname || selectedMember.name).split(',')[1].trim()
+                                                                    : (selectedMember.gelar || 'Member')}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -306,7 +252,7 @@ const MemberDetail = () => {
                                                     <div className="flex-1">
                                                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Catchphrase</span>
                                                         <p className="text-sm lg:text-base font-bold text-gray-800 dark:text-white italic leading-snug">
-                                                            &quot;{selectedMember.jiko || "Halo semua! Saya member dari VIEOS."}&quot;
+                                                            &quot;{selectedMember.jiko || 'Halo semua! Saya member dari VIEOS.'}&quot;
                                                         </p>
                                                     </div>
                                                 </div>
@@ -317,7 +263,7 @@ const MemberDetail = () => {
                                                     <div>
                                                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Social Media</span>
                                                         <span className="text-sm font-bold text-gray-800 dark:text-white underline decoration-vibrant-pink/30 hover:text-vibrant-pink transition-colors cursor-pointer">
-                                                            {selectedMember.instagram || "@vieos_official"}
+                                                            {selectedMember.instagram || '@vieos_official'}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -325,20 +271,19 @@ const MemberDetail = () => {
                                         </div>
                                     </div>
 
-                                    {/* Mobile Member Selector - Minimalist */}
                                     <div
                                         className="mt-8 md:hidden shrink-0 px-2"
                                         style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
                                     >
-                                         <div className="flex gap-3 overflow-x-auto px-1 py-2 scrollbar-none">
-                                            {members.map(m => (
-                                                <button 
+                                        <div className="flex gap-3 overflow-x-auto px-1 py-2 scrollbar-none">
+                                            {members.map((m) => (
+                                                <button
                                                     key={m.id}
                                                     onClick={() => navigate(`/members/${m.id}`)}
                                                     className={`shrink-0 flex flex-col items-center gap-1 origin-center transition-all ${selectedMember.id === m.id ? 'scale-100 opacity-100' : 'opacity-45 scale-95'}`}
                                                 >
-                                                    <div 
-                                                        className="w-14 h-14 rounded-full overflow-hidden border-2 p-0.5" 
+                                                    <div
+                                                        className="w-14 h-14 rounded-full overflow-hidden border-2 p-0.5"
                                                         style={{ borderColor: selectedMember.id === m.id ? m.themeColor : 'transparent' }}
                                                     >
                                                         <SkeletonImage
@@ -351,7 +296,7 @@ const MemberDetail = () => {
                                                     </div>
                                                 </button>
                                             ))}
-                                         </div>
+                                        </div>
                                     </div>
                                 </motion.div>
                             </AnimatePresence>
