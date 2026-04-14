@@ -23,7 +23,7 @@ function App() {
   const isAdmin = location.pathname.startsWith('/admin') || location.pathname === '/login';
 
   React.useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    window.scrollTo(0, 0);
   }, [location.pathname, location.search]);
 
   React.useEffect(() => {

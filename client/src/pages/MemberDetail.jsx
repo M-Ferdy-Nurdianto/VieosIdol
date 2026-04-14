@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchMembers } from '../api';
-import { Sparkles, X, ChevronRight, Cake, Users, Instagram, Heart, ArrowLeft, Search } from 'lucide-react';
+import { Sparkles, ChevronRight, Cake, Users, Instagram, Heart, ArrowLeft, Search } from 'lucide-react';
 import SkeletonImage from '../components/SkeletonImage';
+
+const DEFAULT_MEMBER_IMAGE = '/logos/vieos.webp';
 
 const MemberDetail = () => {
     const { id } = useParams();
@@ -55,14 +57,14 @@ const MemberDetail = () => {
     }
 
     return (
-        <div className="h-screen w-full flex flex-col bg-gray-50 dark:bg-[#0A0E17] relative overflow-hidden pt-20 lg:pt-24 pb-4">
+        <div className="min-h-screen w-full flex flex-col bg-gray-50 dark:bg-[#0A0E17] relative overflow-x-hidden pt-20 lg:pt-24 pb-6">
             {/* Background Effects */}
             <div className="playful-bg opacity-30" />
             
             {/* Main Content Centered in remaining space */}
-            <div className="flex-1 w-full flex items-center justify-center p-2 md:p-4 lg:p-6 relative z-10 transition-all min-h-0">
-                <div className="w-full max-w-7xl h-full max-h-[calc(100vh-8rem)] relative">
-                    <div className="bg-white dark:bg-[#121214] w-full h-full rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row shadow-2xl relative border border-white/10">
+            <div className="w-full flex justify-center p-2 md:p-4 lg:p-6 relative z-10 transition-all">
+                <div className="w-full max-w-7xl relative">
+                    <div className="bg-white dark:bg-[#121214] w-full rounded-[1.75rem] md:rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row shadow-2xl relative border border-white/10">
                         
                         {/* Sidebar - Daftar Member (Left) */}
                         <div className="hidden md:flex w-64 bg-[#f9f9f9] dark:bg-[#0A0A0B] border-r border-gray-100 dark:border-white/5 flex-col overflow-hidden shrink-0">
@@ -110,17 +112,17 @@ const MemberDetail = () => {
                                     animate={{ x: 0, opacity: 1 }}
                                     exit={{ x: -80, opacity: 0 }}
                                     transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                                    className="flex-1 min-h-0 overflow-y-auto lg:overflow-hidden flex flex-col p-6 lg:p-8 pt-6 lg:pt-8 pb-4"
+                                    className="overflow-y-auto flex flex-col p-4 sm:p-5 lg:p-8 pt-5 lg:pt-8 pb-5"
                                 >
                                     {/* Header Branding */}
-                                    <div className="flex flex-col items-start mb-4 shrink-0">
+                                    <div className="flex flex-col items-start mb-5 md:mb-4 shrink-0">
                                         <div className="flex items-center gap-3 mb-2">
                                             <Link to="/members" className="p-2 bg-gray-100 dark:bg-white/5 text-gray-400 rounded-full hover:bg-vibrant-pink hover:text-white transition-all transform hover:scale-110">
                                                 <ArrowLeft size={14} />
                                             </Link>
-                                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">VIEOS PROFILE</span>
+                                            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.25em] md:tracking-[0.4em] text-gray-400">VIEOS PROFILE</span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-[10px] font-bold text-gray-300 dark:text-white/20 uppercase tracking-widest leading-none">
+                                        <div className="flex flex-wrap items-center gap-2 text-[9px] md:text-[10px] font-bold text-gray-300 dark:text-white/20 uppercase tracking-widest leading-none">
                                             <Link to="/" className="hover:text-vibrant-pink transition-colors">Home</Link>
                                             <ChevronRight size={8} />
                                             <Link to="/members" className="hover:text-vibrant-pink transition-colors">Members</Link>
@@ -130,14 +132,14 @@ const MemberDetail = () => {
                                     </div>
 
                                     {/* Detail Content Centered */}
-                                    <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-6 lg:gap-10 items-stretch justify-center">
+                                    <div className="flex flex-col lg:flex-row gap-5 lg:gap-10 items-stretch">
                                         {/* Member Image Card - 4:5 Aspect Ratio bounded by text height */}
-                                        <div className="w-full max-w-[280px] lg:max-w-none lg:w-auto lg:h-full flex flex-col items-center justify-center shrink-0 mx-auto lg:mx-0">
+                                        <div className="w-full max-w-[300px] sm:max-w-[340px] lg:max-w-none lg:w-auto lg:h-full flex flex-col items-center justify-center shrink-0 mx-auto lg:mx-0">
                                             <motion.div 
                                                 initial={{ scale: 0.95, opacity: 0 }}
                                                 animate={{ scale: 1, opacity: 1 }}
                                                 transition={{ delay: 0.2 }}
-                                                className="relative p-2 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col w-full aspect-[4/5] lg:w-auto lg:h-full" 
+                                                className="relative p-2 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col w-full aspect-[4/5]" 
                                                 style={{ backgroundColor: selectedMember.themeColor }}
                                             >
                                                 <Sparkles className="absolute top-4 left-4 text-white opacity-80 animate-pulse" size={16} fill="white" />
@@ -146,8 +148,8 @@ const MemberDetail = () => {
                                                 <div className="bg-white p-1.5 rounded-2xl flex flex-col flex-1 w-full h-full min-h-0">
                                                     <div className="relative rounded-xl overflow-hidden bg-gray-100 group flex-1 w-full h-full min-h-0">
                                                         <SkeletonImage
-                                                            src={selectedMember.image || selectedMember.image_url || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"}
-                                                            fallbackSrc="https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"
+                                                            src={selectedMember.image || selectedMember.image_url || DEFAULT_MEMBER_IMAGE}
+                                                            fallbackSrc={DEFAULT_MEMBER_IMAGE}
                                                             alt={selectedMember.nickname}
                                                             wrapperClassName="absolute inset-0"
                                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -170,11 +172,11 @@ const MemberDetail = () => {
                                         </div>
 
                                         {/* Member Info */}
-                                        <div className="flex-1 w-full flex flex-col justify-end min-h-0 pb-2">
+                                        <div className="flex-1 w-full flex flex-col gap-4 pb-2">
                                             <div className="mb-4">
                                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] block mb-1">Selection Star</span>
                                                 <div className="flex flex-wrap items-baseline gap-3 mb-2">
-                                                    <h1 className="text-5xl lg:text-6xl font-black uppercase tracking-tighter" style={{ color: selectedMember.themeColor }}>
+                                                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter" style={{ color: selectedMember.themeColor }}>
                                                         {selectedMember.nickname}
                                                     </h1>
                                                     <Sparkles size={20} style={{ color: selectedMember.themeColor }} className="animate-spin-slow" />
@@ -247,8 +249,8 @@ const MemberDetail = () => {
                                                         style={{ borderColor: selectedMember.id === m.id ? m.themeColor : 'transparent' }}
                                                     >
                                                         <SkeletonImage
-                                                            src={m.image || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"}
-                                                            fallbackSrc="https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"
+                                                            src={m.image || DEFAULT_MEMBER_IMAGE}
+                                                            fallbackSrc={DEFAULT_MEMBER_IMAGE}
                                                             alt={m.nickname}
                                                             wrapperClassName="w-full h-full rounded-full"
                                                             className="w-full h-full object-cover rounded-full"
