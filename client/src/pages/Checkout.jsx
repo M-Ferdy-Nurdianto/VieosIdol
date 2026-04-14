@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { fetchEvents, API_URL } from '../api';
 import Toast from '../components/Toast';
-import html2canvas from 'html2canvas';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -84,6 +83,7 @@ const Checkout = () => {
     if (!receiptRef.current) return;
     
     try {
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(receiptRef.current, {
         backgroundColor: '#FFE96B',
         scale: 2, // Higher quality

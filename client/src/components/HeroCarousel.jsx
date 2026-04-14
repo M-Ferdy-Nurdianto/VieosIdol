@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Star, Calendar, Music } from 'lucide-react';
 
 const slides = [
   {
@@ -37,13 +36,22 @@ const slides = [
 
 const HeroCarousel = () => {
   const [current, setCurrent] = useState(0);
+  const [isLowPowerMode, setIsLowPowerMode] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 768px), (prefers-reduced-motion: reduce), (hover: none) and (pointer: coarse)');
+    const applyMode = () => setIsLowPowerMode(mediaQuery.matches);
+    applyMode();
+    mediaQuery.addEventListener('change', applyMode);
+    return () => mediaQuery.removeEventListener('change', applyMode);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
-    }, 6000);
+    }, isLowPowerMode ? 8000 : 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isLowPowerMode]);
 
   return (
     <div className="relative h-screen w-full overflow-hidden flex items-center justify-center">
@@ -54,13 +62,15 @@ const HeroCarousel = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: "easeInOut" }}
+          transition={{ duration: isLowPowerMode ? 0.45 : 1.2, ease: "easeInOut" }}
           className="absolute inset-0 z-0"
         >
           {/* Ken Burns Effect Image */}
             <img 
                src={slides[current].image} 
                alt={slides[current].title}
+              loading={current === 0 ? 'eager' : 'lazy'}
+              decoding="async"
                className="absolute inset-0 w-full h-full object-cover"
                onError={(e) => {
                   e.target.src = slides[current].fallback;
@@ -69,7 +79,7 @@ const HeroCarousel = () => {
           
           {/* Overlays */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/80" />
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+          <div className={`absolute inset-0 bg-black/20 ${isLowPowerMode ? '' : 'backdrop-blur-[1px]'}`} />
           
           {/* Colored Tint Overlay */}
           <div className={`absolute inset-0 opacity-20 mix-blend-overlay ${
@@ -87,12 +97,14 @@ const HeroCarousel = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -10, opacity: 0 }}
-            transition={{ 
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 1
-            }}
+            transition={isLowPowerMode
+              ? { duration: 0.35, ease: 'easeOut' }
+              : {
+                  type: "spring",
+                  stiffness: 100,
+                  damping: 20,
+                  mass: 1
+                }}
             className="flex flex-col items-center"
           >
             {/* Badge */}
@@ -117,6 +129,8 @@ const HeroCarousel = () => {
                 <img 
                   src="/logos/vieos.webp" 
                   alt="VIEOS IDOL Logo" 
+                  loading="eager"
+                  decoding="async"
                   className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(255,105,180,0.5)]"
                   onError={(e) => {
                     e.target.src = "https://cdn-icons-png.flaticon.com/512/10534/10534237.png"; 
@@ -124,7 +138,7 @@ const HeroCarousel = () => {
                 />
               </div>
               {/* Glow Effect */}
-              <div className="absolute inset-0 bg-vibrant-pink/20 blur-[60px] rounded-full animate-pulse -z-0" />
+              {!isLowPowerMode && <div className="absolute inset-0 bg-vibrant-pink/20 blur-[60px] rounded-full animate-pulse -z-0" />}
             </div>
 
             <h1 className="text-4xl md:text-7xl font-brand italic font-black mb-4 tracking-tighter text-white leading-[0.95] drop-shadow-2xl">
@@ -154,7 +168,7 @@ const HeroCarousel = () => {
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: "100%" }}
-                  transition={{ duration: 6, ease: "linear" }}
+                  transition={{ duration: isLowPowerMode ? 8 : 6, ease: "linear" }}
                   className="absolute inset-0 bg-vibrant-pink"
                 />
               )}
