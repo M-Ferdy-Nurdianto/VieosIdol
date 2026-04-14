@@ -289,13 +289,16 @@ const MemberDetail = () => {
                                     </div>
 
                                     {/* Mobile Member Selector - Minimalist */}
-                                    <div className="mt-8 md:hidden shrink-0">
-                                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
+                                    <div
+                                        className="mt-8 md:hidden shrink-0 px-2"
+                                        style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+                                    >
+                                         <div className="flex gap-3 overflow-x-auto px-1 py-2 scrollbar-none">
                                             {members.map(m => (
                                                 <button 
                                                     key={m.id}
                                                     onClick={() => navigate(`/members/${m.id}`)}
-                                                    className={`shrink-0 flex flex-col items-center gap-1 transition-all ${selectedMember.id === m.id ? 'scale-110' : 'opacity-30 scale-90'}`}
+                                                    className={`shrink-0 flex flex-col items-center gap-1 origin-center transition-all ${selectedMember.id === m.id ? 'scale-100 opacity-100' : 'opacity-45 scale-95'}`}
                                                 >
                                                     <div 
                                                         className="w-14 h-14 rounded-full overflow-hidden border-2 p-0.5" 
