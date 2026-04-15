@@ -350,10 +350,12 @@ const Admin = () => {
       // Simulasi delay sedikit untuk memunculkan animasi loading
       await new Promise(resolve => setTimeout(resolve, 600));
       if (response.ok) {
-        showToast("Harga standar berhasil diperbarui.");
+        showToast("Harga standar berhasil diperbarui.", "success");
+      } else {
+        showToast("Gagal memperbarui harga (Respons Server).", "error");
       }
     } catch (err) {
-      showToast("Gagal memperbarui harga.", "error");
+      showToast("Gagal memperbarui harga (Koneksi Error).", "error");
     } finally {
       setIsSavingGlobalSettings(false);
     }
