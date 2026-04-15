@@ -120,11 +120,11 @@ const Home = () => {
               
               <div className="space-y-6 max-w-xl">
                   <p className="text-xl md:text-2xl font-medium leading-relaxed" style={{ color: 'var(--text-main)', opacity: 0.9 }}>
-                     <span className="text-vibrant-pink font-black">VIEOS</span> — Energi baru dari Surabaya untuk panggung Indonesia.
+                     <span className="text-vibrant-pink font-black">LOREM IPSUM</span> — Dolor sit amet, consectetur adipiscing elit.
                   </p>
                   
                   <p className="text-base md:text-lg leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                     Berawal dari semangat kearifan lokal di Jawa Timur, VIEOS hadir membawa warna baru dalam dunia idol. Kami bukan sekadar penampil, tapi keluarga yang siap berbagi keceriaan dan mimpi bersama kalian di setiap detiknya!
+                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
                   </p>
 
                  <div className="flex flex-wrap gap-6 items-center pt-8">
