@@ -16,6 +16,7 @@ import PriceInput from './components/PriceInput';
 import SidebarItem from './components/SidebarItem';
 import LoadingSpinner from './components/LoadingSpinner';
 import { eventOptionBadge } from './utils';
+import { getMemberImageSrc, getMemberFallbackImage } from '../../utils/memberImages';
 
 const ADMIN_API = API_URL;
 
@@ -1071,7 +1072,15 @@ const Admin = () => {
                     {membersList.map(member => (
                        <div key={member.id} className="bg-[#121214] border border-white/10 rounded-xl overflow-hidden transition-colors hover:border-white/20 flex flex-col animate-in fade-in zoom-in-95 duration-300">
                           <div className="aspect-square bg-black/20 relative">
-                             <img src={member.image || member.image_url} alt={member.nickname} className="w-full h-full object-cover grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-500" />
+                                           <img
+                                              src={getMemberImageSrc(member)}
+                                              alt={member.nickname}
+                                              onError={(event) => {
+                                                 event.currentTarget.onerror = null;
+                                                 event.currentTarget.src = getMemberFallbackImage(member);
+                                              }}
+                                              className="w-full h-full object-cover grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
+                                           />
                              <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-transparent" />
                           </div>
                           <div className="p-4 border-t-2" style={{ borderColor: member.theme_color || member.themeColor }}>

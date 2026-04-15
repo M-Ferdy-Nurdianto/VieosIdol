@@ -5,6 +5,7 @@ import { fetchMembers, API_URL } from '../api';
 import { Plus, Sparkles, LayoutGrid, Users, CheckCircle2, ChevronRight, Tag } from 'lucide-react';
 import Toast from '../components/Toast';
 import SkeletonImage from '../components/SkeletonImage';
+import { getMemberImageSrc, getMemberFallbackImage } from '../utils/memberImages';
 
 const Cheki = () => {
   const [liveEvents, setLiveEvents] = useState([]);
@@ -88,54 +89,55 @@ const Cheki = () => {
         </div>
 
         {/* Group Cheki - Premium Landscape Design */}
-        <div className="mb-24 md:mb-48 relative px-2 md:px-4 flex justify-center">
+        <div className="mb-16 md:mb-48 relative px-2 md:px-4 flex justify-center">
           <motion.div
             initial={{ y: 30, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
-            className="relative w-full max-w-5xl aspect-square sm:aspect-[16/8] md:aspect-[21/8] group"
+            className="relative w-full max-w-5xl md:aspect-[21/8] group"
           >
-            <div className="absolute inset-0 bg-[#1E2132] rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)] md:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] overflow-hidden border border-white/10 flex flex-col md:flex-row items-stretch">
+            <div className="relative md:absolute md:inset-0 bg-[#1E2132] rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)] md:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] overflow-hidden border border-white/10 flex flex-col md:flex-row items-stretch">
                 {/* Left: Visual/Promo Area */}
-                <div className="relative flex-grow overflow-hidden min-h-[240px]">
-                    <div className="absolute inset-0 opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100">
+                <div className="relative flex-grow overflow-hidden h-[180px] sm:h-[220px] md:h-auto">
+                    <div className="absolute inset-0 opacity-80 md:opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100">
                       <SkeletonImage
                         src="/photo/hero/hero.png"
                         alt="Group Cheki"
                         wrapperClassName="absolute inset-0"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-top"
                       />
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#1E2132]/90" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#1E2132]/90 hidden md:block" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1E2132] via-transparent to-transparent md:hidden" />
                     
-                    <div className="absolute top-6 md:top-10 left-6 md:left-10 z-10">
-                        <div className="bg-vibrant-pink text-white px-3 md:px-4 py-1 md:py-1.5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] mb-4 shadow-[0_10px_20px_rgba(255,27,141,0.3)] inline-block">
+                    <div className="absolute top-4 md:top-10 left-4 md:left-10 z-10 w-[80%]">
+                        <div className="bg-vibrant-pink text-white px-2 md:px-4 py-1 md:py-1.5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] mb-2 md:mb-4 shadow-[0_10px_20px_rgba(255,27,141,0.3)] inline-block">
                            Super Group
                         </div>
-                        <h2 className="text-4xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none filter drop-shadow-2xl">
+                        <h2 className="text-3xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none filter drop-shadow-2xl">
                           Group<br/>
-                          <span className="text-vibrant-yellow font-brand italic lowercase text-3xl md:text-6xl block mt-2">Cheki</span>
+                          <span className="text-vibrant-yellow font-brand italic lowercase text-2xl md:text-6xl block mt-1 md:mt-2">Cheki</span>
                         </h2>
                     </div>
                 </div>
 
                 {/* Right: Booking Panel */}
-                <div className="relative z-10 w-full md:w-[380px] bg-[#1E2132] p-6 md:p-10 flex flex-col justify-center items-center text-center border-t md:border-t-0 md:border-l border-white/5">
-                    <div className="mb-6 md:mb-10">
-                        <p className="text-[8px] md:text-[10px] font-bold text-white/20 uppercase tracking-[0.4em] mb-2 md:mb-3">Starting From</p>
-                        <div className="inline-block bg-white/5 backdrop-blur-md px-4 md:px-6 py-2 md:py-4 rounded-2xl md:rounded-3xl border border-white/10">
-                           <p className="text-xl md:text-3xl font-black text-vibrant-pink tracking-tighter">IDR 30.000</p>
+                <div className="relative z-20 w-full md:w-[380px] bg-[#1E2132] p-5 sm:p-6 md:p-10 flex flex-col justify-start md:justify-center items-center text-center border-t border-white/5 md:border-t-0 md:border-l shrink-0">
+                    <div className="mb-4 md:mb-10 w-full">
+                        <p className="text-[8px] md:text-[10px] font-bold text-white/20 uppercase tracking-[0.4em] mb-2">Starting From</p>
+                        <div className="inline-block bg-white/5 backdrop-blur-md px-4 md:px-6 py-2 md:py-4 rounded-xl md:rounded-3xl border border-white/10 mx-auto">
+                           <p className="text-lg md:text-3xl font-black text-vibrant-pink tracking-tighter">IDR 30.000</p>
                         </div>
                     </div>
 
                     <button 
                       onClick={() => addToCart({ name: 'Group Cheki', price: 30000, type: 'group' })}
-                      className="vibrant-button w-full py-5 md:py-6 text-[9px] md:text-[10px] relative group/btn shadow-[0_20px_50px_rgba(255,27,141,0.4)]"
+                      className="vibrant-button w-full py-4 md:py-6 text-[9px] md:text-[10px] relative group/btn shadow-[0_20px_50px_rgba(255,27,141,0.4)]"
                     >
                       <span className="relative z-10 tracking-[0.3em] font-black">AMANKAN SLOT</span>
                     </button>
                     
-                    <p className="mt-6 md:mt-8 text-[7px] md:text-[8px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">Satu slot untuk foto bersama seluruh member aktif VIEOS.</p>
+                    <p className="mt-4 md:mt-8 text-[8px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">Satu slot untuk foto<br className="md:hidden"/>bersama seluruh member aktif.</p>
                 </div>
             </div>
           </motion.div>
@@ -165,8 +167,8 @@ const Cheki = () => {
                   {/* The Actual Member Photo Area */}
                   <div className="relative aspect-square md:aspect-[4/4.5] w-full bg-[#121212] rounded-lg overflow-hidden border border-black/5">
                     <SkeletonImage
-                      src={member.image || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"}
-                      fallbackSrc="https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"
+                      src={getMemberImageSrc(member)}
+                      fallbackSrc={getMemberFallbackImage(member)}
                       alt={member.nickname}
                       wrapperClassName="w-full h-full"
                       className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-700"

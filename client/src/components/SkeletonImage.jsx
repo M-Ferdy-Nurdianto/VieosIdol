@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 const SkeletonImage = ({
     src,
@@ -16,12 +16,22 @@ const SkeletonImage = ({
     const [currentSrc, setCurrentSrc] = useState(src);
     const [isLoaded, setIsLoaded] = useState(false);
     const [hasFailed, setHasFailed] = useState(false);
+    const imgRef = useRef(null);
 
     useEffect(() => {
         setCurrentSrc(src);
         setIsLoaded(false);
         setHasFailed(false);
     }, [src]);
+
+    useEffect(() => {
+        if (imgRef.current && imgRef.current.complete) {
+            setIsLoaded(true);
+            if (imgRef.current.naturalWidth === 0 && !hasFailed) {
+                 handleError();
+            }
+        }
+    }, [currentSrc, hasFailed]);
 
     const handleLoad = (event) => {
         setIsLoaded(true);
@@ -38,14 +48,14 @@ const SkeletonImage = ({
 
         setHasFailed(true);
         setIsLoaded(true);
-        if (typeof onError === 'function') {
+        if (typeof onError === 'function' && event) {
             onError(event);
         }
     };
 
     return (
         <div className={`relative overflow-hidden ${wrapperClassName}`}>
-            {!isLoaded && (
+            {!isLoaded && !hasFailed && (
                 <div
                     className={`absolute inset-0 animate-pulse bg-black/10 dark:bg-white/10 ${skeletonClassName}`}
                     aria-hidden="true"
@@ -57,6 +67,7 @@ const SkeletonImage = ({
                 </div>
             )}
             <img
+                ref={imgRef}
                 src={currentSrc}
                 alt={alt}
                 loading={loading}

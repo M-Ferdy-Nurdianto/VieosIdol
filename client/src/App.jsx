@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
+import AppAssetLoader from './components/AppAssetLoader';
 
 const Home = lazy(() => import('./pages/Home'));
 const Members = lazy(() => import('./pages/Members'));
@@ -56,36 +57,36 @@ function App() {
   }, []);
 
   return (
-    <div className="App selection:bg-gold/30 overflow-x-hidden">
-      {/* Grainy Texture Overlay */}
-      <div className="grain-overlay" />
-      
-      {!isAdmin && <Navbar />}
-      
-      
-      <main>
-        <Suspense fallback={<RouteLoader />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/music" element={<Music />} />
-            <Route path="/cheki" element={<Cheki />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/members" element={<Members />} />
-            <Route path="/members/:id" element={<MemberDetail />} />
-            <Route path="/login" element={<Login />} />
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute>
-                  <Admin />
-                </ProtectedRoute>
-              } 
-            />
-          </Routes>
-        </Suspense>
-      </main>
-      
-    </div>
+    <AppAssetLoader>
+      <div className="App selection:bg-gold/30 overflow-x-hidden">
+        {/* Grainy Texture Overlay */}
+        <div className="grain-overlay" />
+
+        {!isAdmin && <Navbar />}
+
+        <main>
+          <Suspense fallback={<RouteLoader />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/music" element={<Music />} />
+              <Route path="/cheki" element={<Cheki />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/members" element={<Members />} />
+              <Route path="/members/:id" element={<MemberDetail />} />
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <Admin />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </main>
+      </div>
+    </AppAssetLoader>
   );
 }
 

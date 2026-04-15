@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchMembers } from '../api';
 import { Star } from 'lucide-react';
 import SkeletonImage from '../components/SkeletonImage';
+import { getMemberImageSrc, getMemberFallbackImage } from '../utils/memberImages';
 
 const Members = () => {
   const [members, setMembers] = useState([]);
@@ -83,8 +84,8 @@ const Members = () => {
               style={{ borderColor: member.themeColor }}
             >
               <SkeletonImage
-                src={member.image || "https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"}
-                fallbackSrc="https://images.unsplash.com/photo-1514525253361-bee8a187449a?q=80&w=400&auto=format&fit=crop"
+                src={getMemberImageSrc(member)}
+                fallbackSrc={getMemberFallbackImage(member)}
                 alt={member.nickname}
                 wrapperClassName="w-full h-full"
                 className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-700"
