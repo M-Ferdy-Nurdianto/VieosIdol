@@ -173,7 +173,7 @@ const Cheki = () => {
               <div className="relative h-full rounded-xl md:rounded-2xl overflow-hidden bg-white p-2 pb-3 md:p-3 md:pb-4 shadow-[0_15px_40px_rgba(0,0,0,0.12)] md:shadow-[0_20px_50px_rgba(0,0,0,0.15)] transition-all duration-500 group-hover:rotate-2 group-hover:scale-[1.05] group-hover:shadow-[0_40px_100px_rgba(0,0,0,0.25)] flex flex-col">
                   
                   {/* The Actual Member Photo Area */}
-                  <div className="relative aspect-square md:aspect-[4/4.5] w-full bg-[#121212] rounded-lg overflow-hidden border border-black/5">
+                  <div className="relative aspect-[4/5] w-full bg-[#121212] rounded-lg overflow-hidden border border-black/5">
                     <SkeletonImage
                       src={getMemberImageSrc(member)}
                       fallbackSrc={getMemberFallbackImage(member)}
