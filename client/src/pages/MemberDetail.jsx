@@ -197,8 +197,13 @@ const MemberDetail = () => {
                                                 : 'text-[var(--text-muted)] border-transparent hover:bg-[var(--bg-subtle)] opacity-70 hover:opacity-100'
                                         }`}
                                         style={{
-                                            color: (selectedMember.id === m.id || hoveredId === m.id) ? (m.themeColor || '#ff1b8d') : '',
-                                            borderLeftColor: selectedMember.id === m.id ? (selectedMember.themeColor || '#ff1b8d') : 'transparent'
+                                            color: (selectedMember.id === m.id || hoveredId === m.id) 
+                                                ? ((m.themeColor?.toUpperCase() === '#F8F9FA' || m.themeColor?.toUpperCase() === '#FFFFFF') ? 'var(--vibrant-pink)' : m.themeColor || '#ff1b8d') 
+                                                : '',
+                                            borderLeftColor: selectedMember.id === m.id 
+                                                ? (selectedMember.themeColor || '#ff1b8d') 
+                                                : 'transparent',
+                                            textShadow: (selectedMember.id === m.id && (m.themeColor?.toUpperCase() === '#F8F9FA' || m.themeColor?.toUpperCase() === '#FFFFFF')) ? '0 0 8px rgba(255,27,141,0.3)' : 'none'
                                         }}
                                     >
                                         {m.nickname}
@@ -229,7 +234,11 @@ const MemberDetail = () => {
                                             <ChevronRight size={8} />
                                             <Link to="/members" className="hover:text-vibrant-pink transition-colors">Members</Link>
                                             <ChevronRight size={8} />
-                                            <span style={{ color: selectedMember.themeColor }}>{selectedMember.nickname}</span>
+                                            <span style={{ 
+                                                color: selectedMember.themeColor,
+                                                textShadow: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF') ? '0 0 5px rgba(0,0,0,0.2)' : 'none',
+                                                WebkitTextStroke: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF') ? '0.5px rgba(0,0,0,0.1)' : 'none'
+                                             }}>{selectedMember.nickname}</span>
                                         </div>
                                     </div>
 
@@ -272,20 +281,35 @@ const MemberDetail = () => {
                                         </div>
 
                                         <div className="flex-1 w-full flex flex-col gap-2 md:gap-3 pb-2 justify-center">
-                                            <div className="mb-2">
-                                                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] block mb-0.5">Selection Star</span>
-                                                <div className="flex flex-wrap items-baseline gap-2 mb-1">
-                                                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter" style={{ color: selectedMember.themeColor }}>
+                                            <div className="mb-4 relative group/header">
+                                                <span className="relative z-10 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] block mb-0.5 ml-1">Selection Star</span>
+                                                <div className="relative z-10 flex flex-wrap items-baseline gap-2 mb-1">
+                                                    <h1 
+                                                        className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter transition-all duration-500 relative" 
+                                                        style={{ 
+                                                            color: selectedMember.themeColor,
+                                                            filter: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF')
+                                                                ? 'drop-shadow(0 0 10px rgba(0,0,0,0.15)) drop-shadow(0 0 20px rgba(255,27,141,0.2))'
+                                                                : (selectedMember.themeColor?.toUpperCase() === '#000000' || selectedMember.themeColor?.toUpperCase() === '#1A1A1D')
+                                                                    ? 'drop-shadow(0 0 12px rgba(255,255,255,0.4))'
+                                                                    : `drop-shadow(0 0 15px ${selectedMember.themeColor}33)`
+                                                        }}
+                                                    >
                                                         {selectedMember.nickname}
                                                     </h1>
-                                                    <Sparkles size={16} style={{ color: selectedMember.themeColor }} className="animate-spin-slow" />
+                                                    <Sparkles size={16} style={{ color: selectedMember.themeColor }} className="animate-spin-slow opacity-80" />
                                                 </div>
-                                                <div className="h-0.5 w-full bg-gradient-to-r from-[var(--border-main)] via-[var(--border-main)] to-transparent mb-2" />
+                                                <div className="h-0.5 w-full bg-gradient-to-r from-[var(--border-main)] via-[var(--border-main)] to-transparent mb-2 opacity-50" />
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-w-3xl">
-                                                <div className="bg-[var(--bg-subtle)] border border-[var(--border-main)] p-3 rounded-[1.25rem] flex items-center gap-3 hover:border-vibrant-pink/40 transition-all group">
-                                                    <div className="p-2.5 rounded-xl transition-all group-hover:bg-vibrant-pink group-hover:text-white shrink-0 bg-white dark:bg-black/20" style={{ color: selectedMember.themeColor }}>
+                                                <div className="bg-[var(--bg-subtle)] border border-[var(--border-main)] p-3 rounded-[1.25rem] flex items-center gap-3 hover:border-vibrant-pink/40 transition-all group backdrop-blur-md">
+                                                    <div className="p-2.5 rounded-xl transition-all group-hover:bg-vibrant-pink group-hover:text-white shrink-0 bg-white dark:bg-black/20 font-bold" 
+                                                         style={{ 
+                                                            color: selectedMember.themeColor,
+                                                            border: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF') ? '1px solid rgba(0,0,0,0.1)' : 'none',
+                                                            boxShadow: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF') ? 'inset 0 0 10px rgba(0,0,0,0.02)' : 'none'
+                                                         }}>
                                                         <Cake size={16} />
                                                     </div>
                                                     <div>
@@ -293,12 +317,17 @@ const MemberDetail = () => {
                                                         <span className="text-xs sm:text-sm font-bold text-[var(--text-main)] tracking-tight">{selectedMember.birth_date || '-'}</span>
                                                     </div>
                                                 </div>
-                                                <div className="bg-[var(--bg-subtle)] border border-[var(--border-main)] p-3 rounded-[1.25rem] flex items-center gap-3 hover:border-vibrant-pink/40 transition-all group">
-                                                    <div className="p-2.5 rounded-xl transition-all group-hover:bg-vibrant-pink group-hover:text-white shrink-0 bg-white dark:bg-black/20" style={{ color: selectedMember.themeColor }}>
+                                                <div className="bg-[var(--bg-subtle)] border border-[var(--border-main)] p-3 rounded-[1.25rem] flex items-center gap-3 hover:border-vibrant-pink/40 transition-all group backdrop-blur-md">
+                                                    <div className="p-2.5 rounded-xl transition-all group-hover:bg-vibrant-pink group-hover:text-white shrink-0 bg-white dark:bg-black/20 font-bold" 
+                                                         style={{ 
+                                                            color: selectedMember.themeColor,
+                                                            border: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF') ? '1px solid rgba(0,0,0,0.1)' : 'none',
+                                                            boxShadow: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF') ? 'inset 0 0 10px rgba(0,0,0,0.02)' : 'none'
+                                                         }}>
                                                         <Users size={16} />
                                                     </div>
                                                     <div>
-                                                        <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-0.5">Position</span>
+                                                        <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-0.5">Color Persona</span>
                                                         <span className="text-xs sm:text-sm font-bold text-[var(--text-main)] tracking-tight">
                                                             {selectedMember.role && selectedMember.role !== 'Member'
                                                                 ? selectedMember.role
@@ -308,19 +337,29 @@ const MemberDetail = () => {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="bg-[var(--bg-subtle)] border border-[var(--border-main)] p-3 rounded-[1.25rem] flex items-start gap-3 hover:border-vibrant-pink/40 transition-all group md:col-span-2">
-                                                    <div className="p-2.5 rounded-xl transition-all group-hover:rotate-12 shrink-0 bg-white dark:bg-black/20" style={{ color: selectedMember.themeColor }}>
+                                                <div className="bg-[var(--bg-subtle)] border border-[var(--border-main)] p-3 rounded-[1.25rem] flex items-start gap-3 hover:border-vibrant-pink/40 transition-all group md:col-span-2 backdrop-blur-md">
+                                                    <div className="p-2.5 rounded-xl transition-all group-hover:rotate-12 shrink-0 bg-white dark:bg-black/20 font-bold" 
+                                                         style={{ 
+                                                            color: selectedMember.themeColor,
+                                                            border: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF') ? '1px solid rgba(0,0,0,0.1)' : 'none',
+                                                            boxShadow: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF') ? 'inset 0 0 10px rgba(0,0,0,0.02)' : 'none'
+                                                         }}>
                                                         <Heart size={16} />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-0.5">Jiko/Jikoshoukai</span>
+                                                        <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-0.5">Jikoshoukai</span>
                                                         <p className="text-xs sm:text-sm font-bold text-[var(--text-main)] italic leading-snug">
                                                             &quot;{selectedMember.jiko || 'Halo semua! Saya member dari VIEOS.'}&quot;
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="bg-[var(--bg-subtle)] border border-[var(--border-main)] p-3 rounded-[1.25rem] flex items-center gap-3 hover:border-vibrant-pink/40 transition-all group md:col-span-2">
-                                                    <div className="p-2.5 rounded-xl transition-all group-hover:scale-110 shrink-0 bg-white dark:bg-black/20" style={{ color: selectedMember.themeColor }}>
+                                                <div className="bg-[var(--bg-subtle)] border border-[var(--border-main)] p-3 rounded-[1.25rem] flex items-center gap-3 hover:border-vibrant-pink/40 transition-all group md:col-span-2 backdrop-blur-md">
+                                                    <div className="p-2.5 rounded-xl transition-all group-hover:scale-110 shrink-0 bg-white dark:bg-black/20 font-bold" 
+                                                         style={{ 
+                                                            color: selectedMember.themeColor,
+                                                            border: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF') ? '1px solid rgba(0,0,0,0.1)' : 'none',
+                                                            boxShadow: (selectedMember.themeColor?.toUpperCase() === '#F8F9FA' || selectedMember.themeColor?.toUpperCase() === '#FFFFFF') ? 'inset 0 0 10px rgba(0,0,0,0.02)' : 'none'
+                                                         }}>
                                                         <Instagram size={16} />
                                                     </div>
                                                     <div>
