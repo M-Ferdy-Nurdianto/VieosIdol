@@ -17,20 +17,30 @@ const Checkout = () => {
   
   const [cart, setCart] = useState([]);
   const [liveEvents, setLiveEvents] = useState([]);
+  const [liveSettings, setLiveSettings] = useState(null);
 
   // Helper to get price from live data
   const getItemPrice = (item, eventId) => {
-    if (!eventId) return item.price;
-    const event = liveEvents.find(e => e.id.toString() === eventId.toString());
-    if (!event || event.type === 'standard') return item.price;
+    // 1. Check if it's a special event first
+    if (eventId) {
+      const event = liveEvents.find(e => e.id.toString() === eventId.toString());
+      if (event && event.type === 'special') {
+        const memberName = item.member?.nickname || item.name.split(' ')[0];
+        if (item.type === 'solo' && event.special_prices && event.special_prices[memberName]) {
+            return event.special_prices[memberName];
+        }
+        if (item.type === 'group' && event.special_prices?.['GROUP']) {
+            return event.special_prices['GROUP'];
+        }
+      }
+    }
+    
+    // 2. Otherwise use the latest live settings (fallback to item.price if settings not yet loaded)
+    if (liveSettings?.prices) {
+        if (item.type === 'solo') return liveSettings.prices.regular_cheki_solo;
+        if (item.type === 'group') return liveSettings.prices.regular_cheki_group;
+    }
 
-    const memberName = item.member?.nickname || item.name.split(' ')[0];
-    if (item.type === 'solo' && event.special_prices && event.special_prices[memberName]) {
-        return event.special_prices[memberName];
-    }
-    if (item.type === 'group' && event.special_prices?.['GROUP']) {
-        return event.special_prices['GROUP'];
-    }
     return item.price;
   };
   const [isOrdered, setIsOrdered] = useState(false);
@@ -61,15 +71,19 @@ const Checkout = () => {
       setCart(JSON.parse(savedCart));
     }
 
-    const loadEvents = async () => {
+    const loadData = async () => {
       try {
-        const data = await fetchEvents();
-        setLiveEvents(data);
+        const [eventsData, settingsData] = await Promise.all([
+            fetchEvents(),
+            fetchSettings()
+        ]);
+        setLiveEvents(eventsData);
+        setLiveSettings(settingsData);
       } catch (err) {
-        console.error("Failed to fetch events:", err);
+        console.error("Failed to load checkout data:", err);
       }
     };
-    loadEvents();
+    loadData();
   }, []);
 
   const removeFromCart = (index) => {
@@ -101,7 +115,7 @@ const Checkout = () => {
       showToastMsg("Nota berhasil disimpan ke Galeri!");
     } catch (err) {
       console.error("Save error:", err);
-      showToastMsg("Gagal menyimpan nota, coba screenshot manual ya Bos!");
+      showToastMsg("Duh, gagal simpan nota. Boleh bantu screenshot manual ya, Kak!");
     }
   };
 
@@ -159,7 +173,7 @@ const Checkout = () => {
 
   const handleConfirmOrder = async () => {
     if (cart.length === 0) {
-      showToastMsg("Keranjang masih kosong, Bos!");
+      showToastMsg("Keranjang masih kosong, Kak!");
       return;
     }
     if (!formData.nickname) {
@@ -177,12 +191,12 @@ const Checkout = () => {
 
     const selectedEvent = liveEvents.find(e => e.id.toString() === formData.eventId.toString());
     if (selectedEvent && selectedEvent.status === 'done') {
-      showToastMsg("Event sudah selesai, Bos!");
+      showToastMsg("Event sudah selesai, Kak!");
       return;
     }
 
     if (!proof.compressed) {
-      showToastMsg("Upload bukti bayar dulu, Bos!");
+      showToastMsg("Boleh bantu upload bukti bayarnya dulu ya, Kak!");
       return;
     }
 
@@ -381,8 +395,8 @@ const Checkout = () => {
                                         <div 
                                           key={ev.id}
                                           onClick={() => {
-                                            if (isCompleted) {
-                                              showToastMsg("Event sudah selesai, Bos!");
+                                          if (isCompleted) {
+                                              showToastMsg("Event sudah selesai, Kak!");
                                               return;
                                             }
                                             setFormData(prev => ({ ...prev, eventId: ev.id, isDropdownOpen: false }));
@@ -430,11 +444,11 @@ const Checkout = () => {
 
                    <div className="space-y-1">
                       <label className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-black/40 mb-1 block leading-none">
-                         <FileText size={9} /> Catatan (Tulis '1s' jika tidak hadir)
+                         <FileText size={9} /> Catatan (Tulis 'Titip' atau '1S' kalau kamu nggak dateng)
                       </label>
                       <textarea 
                         name="note" value={formData.note} onChange={handleInputChange}
-                        placeholder="Contoh: Vivi 1S (Titip). Kosongkan jika hadir (2S)."
+                        placeholder="Contoh: Vivi Titip (1S). Kosongkan jika hadir (2S)."
                         className="w-full bg-white/40 border-b border-black/10 focus:border-vibrant-pink p-1.5 text-xs font-bold text-black placeholder:text-black/20 outline-none transition-colors resize-none h-12"
                       />
                    </div>
@@ -546,11 +560,11 @@ const Checkout = () => {
               <div className="mt-4">
                  <button 
                     onClick={handleConfirmOrder}
-                    disabled={isSubmitting}
-                    className={`w-full bg-black text-white py-4 rounded-xl font-black text-[10px] tracking-[0.4em] uppercase shadow-2xl hover:translate-y-[-1px] active:translate-y-0 transition-all relative group overflow-hidden ${isSubmitting ? 'opacity-60 cursor-wait' : ''}`}
+                    disabled={isSubmitting || proof.isCompressing}
+                    className={`w-full bg-black text-white py-4 rounded-xl font-black text-[10px] tracking-[0.4em] uppercase shadow-2xl hover:translate-y-[-1px] active:translate-y-0 transition-all relative group overflow-hidden ${isSubmitting || proof.isCompressing ? 'opacity-60 cursor-wait' : ''}`}
                   >
                      <span className="relative z-10 flex items-center justify-center gap-3">
-                       {isSubmitting ? 'PROSES...' : 'SELESAIKAN ORDER'} <Send size={12} className="group-hover:translate-x-1 transition-transform" />
+                       {isSubmitting ? 'PROSES...' : proof.isCompressing ? 'KOMPRESI GAMBAR...' : 'SELESAIKAN ORDER'} <Send size={12} className="group-hover:translate-x-1 transition-transform" />
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-vibrant-pink to-vibrant-blue translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                  </button>
@@ -558,7 +572,7 @@ const Checkout = () => {
 
               {/* Minimalist Note */}
               <p className="text-[7px] font-bold text-black/20 text-center mt-4 uppercase tracking-widest">
-                 System will compress proof image instantly for high-speed transmission
+                 Gambar bakal otomatis dikompres biar upload-nya ngebut dan hemat kuota ⚡
               </p>
             </motion.div>
           ) : (
@@ -675,10 +689,10 @@ const Checkout = () => {
                         </div>
                         <div>
                            <p className="text-[10px] font-black uppercase text-black tracking-wide mb-1">
-                              ⏳ Pesanan Kamu Akan Kami Segera Cek!
+                              ⏳ Pesanan Kamu Bakal Segera Kami Cek!
                            </p>
                            <p className="text-[8px] font-bold text-black/50 leading-relaxed">
-                              Bukti pembayaran sudah kami terima. Tim VIEOS akan mengecek dan mengkonfirmasi pesananmu secepatnya ya, Wots!
+                              Bukti transfer aman! Tim VIEOS bakal segera cek dan konfirmasi pesananmu. Ditunggu ya, Kak!
                            </p>
                         </div>
                      </div>
@@ -793,7 +807,7 @@ const Checkout = () => {
 
                 <div className="bg-vibrant-pink/10 p-4 rounded-2xl mb-8 border border-vibrant-pink/5">
                    <p className="text-[9px] font-black text-vibrant-pink uppercase tracking-widest leading-relaxed text-center">
-                     Pastikan nominal transfer sesuai dengan total pesanan Anda ya Bos!
+                     Pastikan nominal transfer sesuai dengan total pesanan Anda ya Kak!
                    </p>
                 </div>
 

@@ -213,6 +213,16 @@ const Admin = () => {
       }
     } catch (err) {
       console.error("Fetch data failed:", err);
+      // Try to get more info from the response if possible
+      if (err instanceof Response) {
+        try {
+          const body = await err.text();
+          console.error("Error response body:", body);
+          showToast(`Server Error: ${body.substring(0, 50)}...`, "error");
+        } catch (e) {}
+      } else {
+        showToast("Koneksi gagal atau data tidak valid", "error");
+      }
     } finally {
       setLoading(false);
       initialSyncDoneRef.current = true;

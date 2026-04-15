@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { fetchMembers, API_URL } from '../api';
+import { fetchMembers, fetchEvents, fetchSettings, API_URL } from '../api';
 import { Plus, Sparkles, LayoutGrid, Users, CheckCircle2, ChevronRight, Tag } from 'lucide-react';
 import Toast from '../components/Toast';
 import SkeletonImage from '../components/SkeletonImage';
@@ -19,28 +19,29 @@ const Cheki = () => {
   });
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const loadData = async () => {
       try {
-        const eventsResponse = await fetch(`${API_URL}/orders/events`);
-        const eventsData = await eventsResponse.json();
-        setLiveEvents(eventsData);
+        const [eventsData, settingsData, membersData] = await Promise.all([
+          fetchEvents(),
+          fetchSettings(),
+          fetchMembers()
+        ]);
 
-        const settingsResponse = await fetch(`${API_URL}/orders/settings`);
-        const settingsData = await settingsResponse.json();
+        setLiveEvents(eventsData);
+        
         if (settingsData && settingsData.prices) {
             setGlobalSettings(settingsData);
         }
 
-        const membersData = await fetchMembers();
         setMembers(membersData.map(m => ({
             ...m,
             themeColor: m.theme_color || m.themeColor
         })));
       } catch (err) {
-        console.error("Failed to fetch data:", err);
+        console.error("Failed to load Cheki page data:", err);
       }
     };
-    fetchEvents();
+    loadData();
   }, []);
 
   const addToCart = (item) => {
@@ -92,7 +93,7 @@ const Cheki = () => {
           </motion.h1>
           <div className="flex flex-col md:flex-row items-center gap-4 mt-8">
             <div className="h-1.5 w-24 bg-vibrant-pink rounded-full" />
-            <p className="text-lg font-bold italic tracking-widest opacity-60" style={{ color: 'var(--text-muted)' }}>Momen bareng Oshi cuma sejauh satu klik, Wots! ✨</p>
+            <p className="text-lg font-bold italic tracking-widest opacity-60" style={{ color: 'var(--text-muted)' }}>Amankan slot cheki-mu sekarang. Jangan sampe kehabisan momen bareng oshi, Wots! ✨</p>
           </div>
         </div>
 
@@ -145,7 +146,7 @@ const Cheki = () => {
                       <span className="relative z-10 tracking-[0.3em] font-black">AMANKAN SLOT</span>
                     </button>
                     
-                    <p className="mt-4 md:mt-8 text-[8px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">Satu slot untuk foto<br className="md:hidden"/>bersama seluruh member aktif.</p>
+                    <p className="mt-4 md:mt-8 text-[8px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">Satu tiket buat foto eksklusif bareng<br className="md:hidden"/>semua member yang perform hari ini.</p>
                 </div>
             </div>
           </motion.div>

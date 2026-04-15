@@ -10,7 +10,7 @@ export const fetchMembers = async () => {
         return await response.json();
     } catch (error) {
         console.error("Error fetching members:", error);
-        return [];
+        throw error;
     }
 };
 
@@ -22,7 +22,7 @@ export const fetchEvents = async () => {
         return await response.json();
     } catch (error) {
         console.error("Error fetching events:", error);
-        return [];
+        throw error;
     }
 };
 
@@ -33,7 +33,7 @@ export const fetchDiscography = async () => {
         return await response.json();
     } catch (error) {
         console.error("Error fetching discography:", error);
-        return [];
+        throw error;
     }
 };
 
@@ -44,7 +44,7 @@ export const fetchSettings = async () => {
         return await response.json();
     } catch (error) {
         console.error("Error fetching settings:", error);
-        return null;
+        throw error;
     }
 };
 
@@ -75,7 +75,7 @@ export const fetchOrders = async () => {
         return await response.json();
     } catch (error) {
         console.error("Error fetching orders:", error);
-        return [];
+        throw error;
     }
 };
 

@@ -56,6 +56,13 @@ function App() {
     };
   }, []);
 
+  // Refresh AOS on route change
+  React.useEffect(() => {
+    import('aos').then(m => {
+      if (m && m.default) m.default.refresh();
+    });
+  }, [location.pathname]);
+
   return (
     <AppAssetLoader>
       <div className="App selection:bg-gold/30 overflow-x-hidden">

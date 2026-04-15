@@ -1,4 +1,7 @@
 const supabase = require('../supabaseClient');
+const fs = require('fs');
+const path = require('path');
+const logFile = path.join(__dirname, '../debug.log');
 
 // Get all members
 exports.getMembers = async (req, res) => {
@@ -11,6 +14,7 @@ exports.getMembers = async (req, res) => {
         if (error) throw error;
         res.status(200).json(data);
     } catch (error) {
+        fs.appendFileSync(logFile, `[${new Date().toISOString()}] getMembers error: ${error.stack || error}\x0a`);
         console.error('getMembers error:', error);
         res.status(500).json({ error: error.message });
     }

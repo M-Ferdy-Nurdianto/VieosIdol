@@ -11,9 +11,13 @@ const Home = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      const data = await fetchEvents();
-      // Only show upcoming events
-      setEvents(data.filter(e => e.status !== 'done'));
+      try {
+        const data = await fetchEvents();
+        // Only show upcoming events
+        setEvents(data.filter(e => e.status !== 'done'));
+      } catch (err) {
+        console.error("Failed to load events:", err);
+      }
     };
     loadData();
   }, []);
@@ -116,11 +120,11 @@ const Home = () => {
               
               <div className="space-y-6 max-w-xl">
                   <p className="text-xl md:text-2xl font-medium leading-relaxed" style={{ color: 'var(--text-main)', opacity: 0.9 }}>
-                     <span className="text-vibrant-pink font-black">LOREM IPSUM</span> — Dolor sit amet consectetur adipiscing elit.
+                     <span className="text-vibrant-pink font-black">VIEOS</span> — Energi baru dari Surabaya untuk panggung Indonesia.
                   </p>
                   
                   <p className="text-base md:text-lg leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                     Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                     Berawal dari semangat kearifan lokal di Jawa Timur, VIEOS hadir membawa warna baru dalam dunia idol. Kami bukan sekadar penampil, tapi keluarga yang siap berbagi keceriaan dan mimpi bersama kalian di setiap detiknya!
                   </p>
 
                  <div className="flex flex-wrap gap-6 items-center pt-8">
@@ -240,8 +244,8 @@ const Home = () => {
                         BOOKING INFO
                      </div>
                      <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] uppercase" style={{ color: 'var(--text-main)' }}>
-                        Undang Kami<br/>
-                        <span className="text-gradient font-brand italic text-5xl sm:text-6xl md:text-8xl lowercase block mt-2 md:-mt-2 pb-4">ke panggungmu.</span>
+                        Bawa VIEOS<br/>
+                        <span className="text-gradient font-brand italic text-5xl sm:text-6xl md:text-8xl lowercase block mt-2 md:-mt-2 pb-4">ke event kamu!</span>
                      </h2>
                      
                      {/* Mobile Only: Quick Status Pill */}
@@ -255,7 +259,7 @@ const Home = () => {
                   
                   <div className="space-y-10 lg:space-y-12 text-center lg:text-left" data-aos="fade-up" data-aos-delay="100">
                      <p className="text-lg md:text-2xl font-medium leading-relaxed opacity-90 max-w-2xl mx-auto lg:mx-0" style={{ color: 'var(--text-muted)' }}>
-                        Untuk para <span className="text-vibrant-pink font-extrabold italic">Event Organizer</span> dan Promotor yang ingin menghadirkan kemeriahan <span className="text-vibrant-blue font-extrabold">VIEOS</span>, silakan hubungi tim kami untuk detail teknis dan jadwal.
+                        Buat EO, Kampus, atau Promotor yang pengen event-nya makin pecah bareng <span className="text-vibrant-pink font-extrabold italic">VIEOS</span>, langsung aja kontak manajemen kita buat atur jadwal dan detailnya!
                      </p>
                      
                      <div className="flex flex-col sm:flex-row flex-wrap gap-6 items-center justify-center lg:justify-start">
