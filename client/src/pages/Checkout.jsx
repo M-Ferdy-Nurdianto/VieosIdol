@@ -34,7 +34,8 @@ const Checkout = () => {
     return item.price;
   };
   const [isOrdered, setIsOrdered] = useState(false);
-  const [showToast, setShowToast] = useState(null);
+  const [toastConfig, setToastConfig] = useState(null);
+  const showToastMsg = (msg, type = 'error') => { setToastConfig(msg ? { message: msg, type } : null); };
   
   const [formData, setFormData] = useState({
     nickname: '',
@@ -97,10 +98,10 @@ const Checkout = () => {
       link.href = image;
       link.download = `VIEOS-RECEIPT-${orderId.replace('#', '')}.png`;
       link.click();
-      setShowToast("Nota berhasil disimpan ke Galeri!");
+      showToastMsg("Nota berhasil disimpan ke Galeri!");
     } catch (err) {
       console.error("Save error:", err);
-      setShowToast("Gagal menyimpan nota, coba screenshot manual ya Bos!");
+      showToastMsg("Gagal menyimpan nota, coba screenshot manual ya Bos!");
     }
   };
 
@@ -114,7 +115,7 @@ const Checkout = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setShowToast('File harus berupa gambar.');
+      showToastMsg('File harus berupa gambar.');
       return;
     }
 
@@ -148,7 +149,7 @@ const Checkout = () => {
         compressed: null,
         isCompressing: false
       }));
-      setShowToast('Gagal memproses gambar. Coba file lain ya!');
+      showToastMsg('Gagal memproses gambar. Coba file lain ya!');
     }
   };
 
@@ -158,30 +159,30 @@ const Checkout = () => {
 
   const handleConfirmOrder = async () => {
     if (cart.length === 0) {
-      setShowToast("Keranjang masih kosong, Bos!");
+      showToastMsg("Keranjang masih kosong, Bos!");
       return;
     }
     if (!formData.nickname) {
-      setShowToast("Nama Panggilan harus diisi!");
+      showToastMsg("Nama Panggilan harus diisi!");
       return;
     }
     if (!formData.contact) {
-      setShowToast("Username IG / WA harus diisi!");
+      showToastMsg("Username IG / WA harus diisi!");
       return;
     }
     if (!formData.eventId) {
-      setShowToast("Pilih event dulu ya!");
+      showToastMsg("Pilih event dulu ya!");
       return;
     }
 
     const selectedEvent = liveEvents.find(e => e.id.toString() === formData.eventId.toString());
     if (selectedEvent && selectedEvent.status === 'done') {
-      setShowToast("Event sudah selesai, Bos!");
+      showToastMsg("Event sudah selesai, Bos!");
       return;
     }
 
     if (!proof.compressed) {
-      setShowToast("Upload bukti bayar dulu, Bos!");
+      showToastMsg("Upload bukti bayar dulu, Bos!");
       return;
     }
 
@@ -253,7 +254,7 @@ const Checkout = () => {
       localStorage.removeItem('vieos_cart');
     } catch (error) {
       console.error('Order error:', error);
-      setShowToast(error.message || "Terjadi kesalahan, coba lagi!");
+      showToastMsg(error.message || "Terjadi kesalahan, coba lagi!");
     } finally {
       setIsSubmitting(false);
     }
@@ -381,7 +382,7 @@ const Checkout = () => {
                                           key={ev.id}
                                           onClick={() => {
                                             if (isCompleted) {
-                                              setShowToast("Event sudah selesai, Bos!");
+                                              showToastMsg("Event sudah selesai, Bos!");
                                               return;
                                             }
                                             setFormData(prev => ({ ...prev, eventId: ev.id, isDropdownOpen: false }));
@@ -754,11 +755,11 @@ const Checkout = () => {
         </AnimatePresence>
 
         <AnimatePresence>
-          {showToast && (
+          {toastConfig && (
             <Toast 
-              message={showToast} 
-              type="error"
-              onClose={() => setShowToast(null)} 
+              message={toastConfig.message} 
+              type={toastConfig.type}
+              onClose={() => showToastMsg(null)} 
             />
           )}
         </AnimatePresence>

@@ -11,7 +11,8 @@ const Cheki = () => {
   const [liveEvents, setLiveEvents] = useState([]);
   const [members, setMembers] = useState([]);
   const [globalSettings, setGlobalSettings] = useState(() => ({ prices: { regular_cheki_solo: 30000, regular_cheki_group: 35000 } }));
-  const [showToast, setShowToast] = useState(null);
+  const [toastConfig, setToastConfig] = useState(null);
+  const showToastMsg = (msg, type = 'error') => { setToastConfig(msg ? { message: msg, type } : null); };
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem('vieos_cart');
     return savedCart ? JSON.parse(savedCart) : [];
@@ -46,7 +47,7 @@ const Cheki = () => {
     const newCart = [...cart, { ...item, cartId: Math.random() }];
     setCart(newCart);
     localStorage.setItem('vieos_cart', JSON.stringify(newCart));
-    setShowToast(`${item.name} Berhasil Ditambah!`);
+    showToastMsg(`${item.name} Berhasil Ditambah!`);
   };
 
   const removeFromCart = (cartId) => {
@@ -265,10 +266,11 @@ const Cheki = () => {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showToast && (
+        {toastConfig && (
           <Toast 
-            message={showToast} 
-            onClose={() => setShowToast(null)} 
+            message={toastConfig.message} 
+            type={toastConfig.type}
+            onClose={() => showToastMsg(null)} 
           />
         )}
       </AnimatePresence>
