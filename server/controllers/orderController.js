@@ -455,14 +455,55 @@ exports.updateEvent = async (req, res) => {
 exports.deleteEvent = async (req, res) => {
     try {
         const { id } = req.params;
-        const { error } = await supabase
+
+        // 1. Ambil semua order terkait event ini untuk mendapatkan gambar struk
+        const { data: orders, error: fetchError } = await supabase
+            .from('orders')
+            .select('payment_proof_url')
+            .eq('event_id', id);
+
+        if (fetchError) throw fetchError;
+
+        // 2. Hapus gambar struk dari bucket storage (payment-proofs) jika ada
+        if (orders && orders.length > 0) {
+            const filesToDelete = orders
+                .filter(order => order.payment_proof_url)
+                .map(order => {
+                    const parts = order.payment_proof_url.split('/');
+                    return parts[parts.length - 1]; // Mengambil nama file dari URL
+                });
+
+            if (filesToDelete.length > 0) {
+                const { error: storageError } = await supabase
+                    .storage
+                    .from('payment-proofs')
+                    .remove(filesToDelete);
+
+                if (storageError) {
+                    console.error('Gagal menghapus gambar dari storage:', storageError);
+                }
+            }
+        }
+
+        // 3. Hapus semua order yang terhubung dengan event ini
+        const { error: deleteOrdersError } = await supabase
+            .from('orders')
+            .delete()
+            .eq('event_id', id);
+            
+        if (deleteOrdersError) throw deleteOrdersError;
+
+        // 4. Hapus event itu sendiri
+        const { error: deleteEventError } = await supabase
             .from('events')
             .delete()
             .eq('id', id);
 
-        if (error) throw error;
-        res.status(200).json({ message: 'Event deleted successfully' });
+        if (deleteEventError) throw deleteEventError;
+
+        res.status(200).json({ message: 'Event dan order terkait berhasil dihapus.' });
     } catch (error) {
+        console.error('Error saat menghapus event:', error);
         res.status(500).json({ error: error.message });
     }
 };

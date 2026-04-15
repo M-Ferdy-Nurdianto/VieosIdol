@@ -342,11 +342,13 @@ const Admin = () => {
   const updateGlobalSettings = async () => {
     setIsSavingGlobalSettings(true);
     try {
-         const response = await fetch(`${ADMIN_API}/orders/settings`, {
+      const response = await fetch(`${ADMIN_API}/orders/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prices: globalSettings.prices })
       });
+      // Simulasi delay sedikit untuk memunculkan animasi loading
+      await new Promise(resolve => setTimeout(resolve, 600));
       if (response.ok) {
         showToast("Harga standar berhasil diperbarui.");
       }
@@ -426,7 +428,7 @@ const Admin = () => {
     setConfirmModal({
       show: true,
       title: 'Hapus Event',
-      message: 'Apakah Anda yakin ingin menghapus event ini? Semua pesanan terkait mungkin akan kehilangan referensi event.',
+      message: 'PERINGATAN: Apakah Anda yakin ingin menghapus event ini? Sebelum menghapus, pastikan Anda sudah melakukan Export ke PDF/Spreadsheet. Event yang sudah selesai otomatis dihapus setelah 67 hari oleh sistem.',
       onConfirm: async () => {
         setConfirmModal(prev => ({ ...prev, show: false }));
         setDeletingId(id);
@@ -578,7 +580,7 @@ const Admin = () => {
                    { id: 'orders', icon: ShoppingBag, label: 'Pesanan' },
                    { id: 'cms', icon: Users, label: 'Manajemen Talent' },
                    { id: 'export', icon: FileSpreadsheet, label: 'Ekspor Data' },
-                   { id: 'settings', icon: Settings, label: 'Pengaturan' },
+                   { id: 'settings', icon: Settings, label: 'EVENT' },
                    { id: 'handbook', icon: FileText, label: 'Panduan Staff' },
                  ].map(item => (
                    <SidebarItem 
@@ -612,7 +614,7 @@ const Admin = () => {
                <SidebarItem id="orders" icon={ShoppingBag} label="Pesanan" activeTab={activeTab} setActiveTab={setActiveTab} setMobileMenuOpen={setMobileMenuOpen} />
                <SidebarItem id="cms" icon={Users} label="Manajemen Talent" activeTab={activeTab} setActiveTab={setActiveTab} setMobileMenuOpen={setMobileMenuOpen} />
                <SidebarItem id="export" icon={FileSpreadsheet} label="Ekspor Data" activeTab={activeTab} setActiveTab={setActiveTab} setMobileMenuOpen={setMobileMenuOpen} />
-               <SidebarItem id="settings" icon={Settings} label="Pengaturan" activeTab={activeTab} setActiveTab={setActiveTab} setMobileMenuOpen={setMobileMenuOpen} />
+               <SidebarItem id="settings" icon={Settings} label="EVENT" activeTab={activeTab} setActiveTab={setActiveTab} setMobileMenuOpen={setMobileMenuOpen} />
                <SidebarItem id="handbook" icon={History} label="Panduan Staff" activeTab={activeTab} setActiveTab={setActiveTab} setMobileMenuOpen={setMobileMenuOpen} />
             </div>     
             <button 
@@ -898,6 +900,7 @@ const Admin = () => {
                                 <th className="p-4 text-xs font-bold uppercase text-white/40">ID</th>
                                 <th className="p-4 text-xs font-bold uppercase text-white/40">Pelanggan</th>
                                 <th className="p-4 text-xs font-bold uppercase text-white/40">Item</th>
+                                <th className="p-4 text-xs font-bold uppercase text-white/40">Catatan PO</th>
                                 <th className="p-4 text-xs font-bold uppercase text-white/40">Total</th>
                                 <th className="p-4 text-xs font-bold uppercase text-white/40">Bukti</th>
                                 <th className="p-4 text-xs font-bold uppercase text-white/40">Status</th>
@@ -912,6 +915,9 @@ const Admin = () => {
                                       {order.items && order.items.length > 0 
                                          ? order.items.map(it => `${it.member_id} x${it.qty}`).join(', ')
                                          : `${order.qty}x ${order.cheki_type}`}
+                                   </td>
+                                   <td className="p-4 text-xs text-white/60 italic">
+                                      {order.note || '-'}
                                    </td>
                                    <td className="p-4 text-xs font-bold text-vibrant-pink">Rp {order.total_price.toLocaleString()}</td>
                                     <td className="p-4">
@@ -961,8 +967,21 @@ const Admin = () => {
                      <h2 className="text-2xl font-bold uppercase tracking-tight">Arsip Pesanan</h2>
 
                     <div className="flex gap-4 w-full md:w-auto items-center">
-                       <div className="bg-[#121214] border border-white/10 rounded-lg px-2 py-1 flex items-center gap-2">
-                          <span className="text-xs text-white/40">Active:</span>
+                       <VIEOSSelect 
+                         value={filter.event}
+                         onChange={val => setFilter(prev => ({...prev, event: val}))}
+                         placeholder="Semua Event"
+                         className="w-full md:w-48"
+                         options={[
+                           { value: 'all', label: 'Semua Event' },
+                           ...events.map(ev => ({
+                             value: ev.id.toString(),
+                             label: ev.name
+                           }))
+                         ]}
+                       />
+                       <div className="bg-[#121214] border border-white/10 rounded-lg px-2 py-1 flex items-center justify-center gap-2">
+                          <span className="text-xs text-white/40 hidden md:inline">Active:</span>
                           <span className="text-xs font-bold bg-white text-black px-1.5 py-0.5 rounded">
                             {onlineOrders.length}
                           </span>
@@ -990,33 +1009,30 @@ const Admin = () => {
                     </div>
                  </div>
 
-                   <div className="bg-[#121214] border border-white/10 rounded-xl overflow-hidden">
+                   {/* SECTION: OTS */}
+                   <div className="mb-4 flex items-center justify-between">
+                     <h3 className="text-lg font-bold uppercase tracking-tight text-white/80 border-b-2 border-purple-500/50 pb-1">On The Spot (OTS)</h3>
+                     <span className="text-xs font-bold bg-purple-600/20 text-purple-400 px-2 py-1 rounded">
+                       {filterList(allMergedOrders).filter(o => o.mode === 'ots').length} Pesanan
+                     </span>
+                   </div>
+                   <div className="bg-[#121214] border border-white/10 rounded-xl overflow-hidden mb-8">
                       <div className="overflow-x-auto">
                          <table className="w-full text-left border-collapse">
                             <thead>
                                <tr className="bg-white/5 border-b border-white/10 text-white/40 uppercase text-[10px] font-bold tracking-widest">
                                   <th className="p-4 w-20">ID</th>
                                   <th className="p-4">Nama</th>
-                                  <th className="p-4">Tipe</th>
                                   <th className="p-4">Item</th>
                                   <th className="p-4">Total</th>
                                   <th className="p-4">Status</th>
                                </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                               {filterList(allMergedOrders).map((order) => (
+                               {filterList(allMergedOrders).filter(order => order.mode === 'ots').map((order) => (
                                   <tr key={order.id} className="group hover:bg-white/5 transition-colors">
                                      <td className="p-4 text-[10px] font-mono text-white/30">{order.public_code || `#${order.id}`}</td>
                                      <td className="p-4 text-sm font-bold text-white/90">{order.nickname}</td>
-                                     <td className="p-4">
-                                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${
-                                           order.mode === 'ots' 
-                                              ? 'bg-purple-600/20 text-purple-400 border border-purple-500/20' 
-                                              : 'bg-vibrant-pink/20 text-vibrant-pink border border-vibrant-pink/20'
-                                        }`}>
-                                           {order.mode === 'ots' ? 'OTS' : 'PO'}
-                                        </span>
-                                     </td>
                                      <td className="p-4 text-[10px] text-white/60 font-medium">
                                         {order.items && order.items.length > 0 
                                            ? order.items.map(it => `${it.member_id} x${it.qty}`).join(', ') 
@@ -1039,9 +1055,67 @@ const Admin = () => {
                                ))}
                             </tbody>
                          </table>
-                         {filterList(allMergedOrders).length === 0 && (
-                            <div className="py-20 text-center">
-                               <p className="text-xs text-white/20 uppercase tracking-widest font-black">Data pesanan tidak ditemukan.</p>
+                         {filterList(allMergedOrders).filter(o => o.mode === 'ots').length === 0 && (
+                            <div className="py-12 text-center">
+                               <p className="text-xs text-white/20 uppercase tracking-widest font-black">Data OTS tidak ditemukan.</p>
+                            </div>
+                         )}
+                      </div>
+                   </div>
+
+                   {/* SECTION: PRE-ORDER */}
+                   <div className="mb-4 flex items-center justify-between">
+                     <h3 className="text-lg font-bold uppercase tracking-tight text-white/80 border-b-2 border-vibrant-pink/50 pb-1">Pre-Order (PO)</h3>
+                     <span className="text-xs font-bold bg-vibrant-pink/20 text-vibrant-pink px-2 py-1 rounded">
+                       {filterList(allMergedOrders).filter(o => o.mode !== 'ots').length} Pesanan
+                     </span>
+                   </div>
+                   <div className="bg-[#121214] border border-white/10 rounded-xl overflow-hidden">
+                      <div className="overflow-x-auto">
+                         <table className="w-full text-left border-collapse">
+                            <thead>
+                               <tr className="bg-white/5 border-b border-white/10 text-white/40 uppercase text-[10px] font-bold tracking-widest">
+                                  <th className="p-4 w-20">ID</th>
+                                  <th className="p-4">Nama</th>
+                                  <th className="p-4 w-1/3">Item</th>
+                                  <th className="p-4">Catatan PO</th>
+                                  <th className="p-4">Total</th>
+                                  <th className="p-4">Status</th>
+                               </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                               {filterList(allMergedOrders).filter(order => order.mode !== 'ots').map((order) => (
+                                  <tr key={order.id} className="group hover:bg-white/5 transition-colors">
+                                     <td className="p-4 text-[10px] font-mono text-white/30">{order.public_code || `#${order.id}`}</td>
+                                     <td className="p-4 text-sm font-bold text-white/90">{order.nickname}</td>
+                                     <td className="p-4 text-[10px] text-white/60 font-medium">
+                                        {order.items && order.items.length > 0 
+                                           ? order.items.map(it => `${it.member_id} x${it.qty}`).join(', ') 
+                                           : order.member_id || '-'}
+                                     </td>
+                                     <td className="p-4 text-[10px] text-white/60 italic">
+                                        {order.note ? order.note : '-'}
+                                     </td>
+                                     <td className="p-4 text-[10px] font-black text-vibrant-pink">Rp {order.total_price.toLocaleString()}</td>
+                                      <td className="p-4">
+                                        <VIEOSSelect 
+                                           value={order.status}
+                                           onChange={val => updateStatus(order.id, val)}
+                                           className="min-w-[10rem]"
+                                           options={[
+                                             { value: 'pending', label: 'Belum dicek' },
+                                             { value: 'paid', label: 'Sudah bayar' },
+                                             { value: 'done', label: 'Selesai' }
+                                           ]}
+                                        />
+                                      </td>
+                                  </tr>
+                               ))}
+                            </tbody>
+                         </table>
+                         {filterList(allMergedOrders).filter(o => o.mode !== 'ots').length === 0 && (
+                            <div className="py-12 text-center">
+                               <p className="text-xs text-white/20 uppercase tracking-widest font-black">Data PO tidak ditemukan.</p>
                             </div>
                          )}
                       </div>
@@ -1421,8 +1495,16 @@ const Admin = () => {
                                      <div className="relative">
                                         <PriceInput 
                                            disabled={eventForm.type === 'special'}
-                                           value={eventForm.type === 'special' ? 30000 : eventForm.special_solo_price}
-                                           onChange={val => setEventForm(prev => ({...prev, special_solo_price: val}))}
+                                           value={eventForm.type === 'special' ? globalSettings.prices.regular_cheki_solo : eventForm.special_solo_price}
+                                           onChange={val => {
+                                             if (eventForm.type !== 'special') {
+                                               setEventForm(prev => ({...prev, special_solo_price: val}));
+                                             }
+                                             setGlobalSettings(prev => ({
+                                               ...prev,
+                                               prices: { ...prev.prices, regular_cheki_solo: val }
+                                             }));
+                                           }}
                                            className="text-right pr-2 bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm"
                                            colorClass="text-vibrant-pink font-bold"
                                         />
@@ -1430,7 +1512,7 @@ const Admin = () => {
                                      </div>
                                     <p className="text-[10px] text-white/20 text-right">
                                        {eventForm.type === 'special' 
-                                          ? `Rp ${(30000).toLocaleString('id-ID')}` 
+                                          ? `Rp ${(globalSettings.prices.regular_cheki_solo || 0).toLocaleString('id-ID')}` 
                                           : (eventForm.special_solo_price ? `Rp ${(parseInt(eventForm.special_solo_price) || 0).toLocaleString('id-ID')}` : '-')
                                        }
                                     </p>
@@ -1440,8 +1522,16 @@ const Admin = () => {
                                      <div className="relative">
                                         <PriceInput 
                                            disabled={eventForm.type === 'special'}
-                                           value={eventForm.type === 'special' ? 35000 : eventForm.special_group_price}
-                                           onChange={val => setEventForm(prev => ({...prev, special_group_price: val}))}
+                                           value={eventForm.type === 'special' ? globalSettings.prices.regular_cheki_group : eventForm.special_group_price}
+                                           onChange={val => {
+                                             if (eventForm.type !== 'special') {
+                                               setEventForm(prev => ({...prev, special_group_price: val}));
+                                             }
+                                             setGlobalSettings(prev => ({
+                                               ...prev,
+                                               prices: { ...prev.prices, regular_cheki_group: val }
+                                             }));
+                                           }}
                                            className="text-right pr-2 bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm"
                                            colorClass="text-vibrant-pink font-bold"
                                         />
@@ -1449,7 +1539,7 @@ const Admin = () => {
                                      </div>
                                     <p className="text-[10px] text-white/20 text-right">
                                        {eventForm.type === 'special' 
-                                          ? `Rp ${(35000).toLocaleString('id-ID')}` 
+                                          ? `Rp ${(globalSettings.prices.regular_cheki_group || 0).toLocaleString('id-ID')}` 
                                           : (eventForm.special_group_price ? `Rp ${(parseInt(eventForm.special_group_price) || 0).toLocaleString('id-ID')}` : '-')
                                        }
                                     </p>
@@ -1576,9 +1666,27 @@ const Admin = () => {
                            </div>
                         </div>
 
+                        <div className="bg-[#121214] border border-white/10 p-8 rounded-2xl">
+                           <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
+                              <span className="w-8 h-8 rounded-lg bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-sm">04</span>
+                              EVENT & MANAJEMEN PESANAN
+                           </h3>
+                           <div className="space-y-4 relative z-10 text-xs text-white/60 leading-relaxed">
+                              <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                                 <ul className="list-disc ml-4 space-y-2">
+                                    <li><b>Filter Event:</b> Daftar pesanan bisa difilter berdasarkan event tertentu. Pilih event di dropdown sebelah fitur pencarian pada tab Pesanan.</li>
+                                    <li><b>PO & OTS Terpisah:</b> Tabel pesanan telah dibagi dua bagian: OTS (pesanan langsung di booth) dan PO (pre-order) untuk mempermudah pengecekan.</li>
+                                    <li><b>Catatan PO:</b> Kolom Catatan PO ditambahkan di tabel PO untuk melihat pesan khusus dari pembeli.</li>
+                                    <li className="text-vibrant-pink font-bold"><b>Auto-Delete:</b> Event yang sudah berlalu akan terhapus otomatis setelah 67 hari oleh sistem.</li>
+                                    <li className="text-vibrant-pink font-bold"><b>Export Sebelum Delete:</b> Selalu lakukan Export Excel/PDF sebelum menghapus event agar data penting tidak hilang.</li>
+                                 </ul>
+                              </div>
+                           </div>
+                        </div>
+
                         <div className="bg-gradient-to-br from-[#1A1A1D] to-[#121214] border border-white/10 p-8 rounded-2xl shadow-xl">
                            <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
-                              <span className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center text-sm">04</span>
+                              <span className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center text-sm">05</span>
                               KONTAK DEVELOPER
                            </h3>
                            <div className="space-y-4">

@@ -10,6 +10,7 @@ import { getMemberImageSrc, getMemberFallbackImage } from '../utils/memberImages
 const Cheki = () => {
   const [liveEvents, setLiveEvents] = useState([]);
   const [members, setMembers] = useState([]);
+  const [globalSettings, setGlobalSettings] = useState(() => ({ prices: { regular_cheki_solo: 30000, regular_cheki_group: 35000 } }));
   const [showToast, setShowToast] = useState(null);
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem('vieos_cart');
@@ -22,6 +23,12 @@ const Cheki = () => {
         const eventsResponse = await fetch(`${API_URL}/orders/events`);
         const eventsData = await eventsResponse.json();
         setLiveEvents(eventsData);
+
+        const settingsResponse = await fetch(`${API_URL}/orders/settings`);
+        const settingsData = await settingsResponse.json();
+        if (settingsData && settingsData.prices) {
+            setGlobalSettings(settingsData);
+        }
 
         const membersData = await fetchMembers();
         setMembers(membersData.map(m => ({
@@ -126,12 +133,12 @@ const Cheki = () => {
                     <div className="mb-4 md:mb-10 w-full">
                         <p className="text-[8px] md:text-[10px] font-bold text-white/20 uppercase tracking-[0.4em] mb-2">Starting From</p>
                         <div className="inline-block bg-white/5 backdrop-blur-md px-4 md:px-6 py-2 md:py-4 rounded-xl md:rounded-3xl border border-white/10 mx-auto">
-                           <p className="text-lg md:text-3xl font-black text-vibrant-pink tracking-tighter">IDR 30.000</p>
-                        </div>
-                    </div>
+                             <p className="text-lg md:text-3xl font-black text-vibrant-pink tracking-tighter">IDR {(globalSettings.prices.regular_cheki_group || 35000).toLocaleString('id-ID')}</p>
+                          </div>
+                      </div>
 
-                    <button 
-                      onClick={() => addToCart({ name: 'Group Cheki', price: 30000, type: 'group' })}
+                      <button 
+                        onClick={() => addToCart({ name: 'Group Cheki', price: globalSettings.prices.regular_cheki_group || 35000, type: 'group' })}
                       className="vibrant-button w-full py-4 md:py-6 text-[9px] md:text-[10px] relative group/btn shadow-[0_20px_50px_rgba(255,27,141,0.4)]"
                     >
                       <span className="relative z-10 tracking-[0.3em] font-black">AMANKAN SLOT</span>
@@ -198,13 +205,13 @@ const Cheki = () => {
                                   <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-black/30">Member Cheki</span>
                                   <span className="text-[7px] md:text-[8px] font-bold text-black/20 uppercase tracking-widest leading-none mt-0.5 md:mt-1">{member.nickname}</span>
                               </div>
-                              <span className="text-base md:text-xl font-black text-vibrant-pink leading-none">25K</span>
-                          </div>
-                      
-                          <button 
-                              onClick={(e) => {
-                                  e.stopPropagation();
-                                  addToCart({ name: `${member.nickname} Member Cheki`, price: 25000, type: 'solo', member });
+                                <span className="text-base md:text-xl font-black text-vibrant-pink leading-none">{Math.floor((globalSettings.prices.regular_cheki_solo || 30000)/1000)}K</span>
+                            </div>
+                        
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    addToCart({ name: `${member.nickname} Member Cheki`, price: globalSettings.prices.regular_cheki_solo || 30000, type: 'solo', member });
                               }}
                               className="w-full py-3.5 md:py-5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] rounded-xl md:rounded-2xl shadow-lg active:scale-95 transition-all hover:brightness-95"
                               style={{ 
