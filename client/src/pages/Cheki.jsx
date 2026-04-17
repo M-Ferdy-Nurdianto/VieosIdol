@@ -10,6 +10,7 @@ import { getMemberImageSrc, getMemberFallbackImage } from '../utils/memberImages
 const Cheki = () => {
   const [liveEvents, setLiveEvents] = useState([]);
   const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [globalSettings, setGlobalSettings] = useState(() => ({ prices: { regular_cheki_solo: 30000, regular_cheki_group: 35000 } }));
   const [toastConfig, setToastConfig] = useState(null);
   const showToastMsg = (msg, type = 'error') => { setToastConfig(msg ? { message: msg, type } : null); };
@@ -20,6 +21,7 @@ const Cheki = () => {
 
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true);
       try {
         const [eventsData, settingsData, membersData] = await Promise.all([
           fetchEvents(),
@@ -39,6 +41,8 @@ const Cheki = () => {
         })));
       } catch (err) {
         console.error("Failed to load Cheki page data:", err);
+      } finally {
+        setLoading(false);
       }
     };
     loadData();
@@ -106,57 +110,61 @@ const Cheki = () => {
 
         {/* Group Cheki - Premium Landscape Design */}
         <div className="mb-16 md:mb-48 relative px-2 md:px-4 flex justify-center">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            className="relative w-full max-w-5xl md:aspect-[21/8] group"
-          >
-            <div className="relative md:absolute md:inset-0 bg-[#1E2132] rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)] md:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] overflow-hidden border border-white/10 flex flex-col md:flex-row items-stretch">
-                {/* Left: Visual/Promo Area */}
-                <div className="relative flex-grow overflow-hidden h-[180px] sm:h-[220px] md:h-auto">
-                    <div className="absolute inset-0 opacity-80 md:opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100">
-                      <SkeletonImage
-                        src="/photo/hero/hero.png"
-                        alt="Group Cheki"
-                        wrapperClassName="absolute inset-0"
-                        className="w-full h-full object-cover object-top"
-                      />
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#1E2132]/90 hidden md:block" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1E2132] via-transparent to-transparent md:hidden" />
-                    
-                    <div className="absolute top-4 md:top-10 left-4 md:left-10 z-10 w-[80%]">
-                        <div className="bg-vibrant-pink text-white px-2 md:px-4 py-1 md:py-1.5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] mb-2 md:mb-4 shadow-[0_10px_20px_rgba(255,27,141,0.3)] inline-block">
-                           Super Group
-                        </div>
-                        <h2 className="text-3xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none filter drop-shadow-2xl">
-                          Group<br/>
-                          <span className="text-vibrant-yellow font-brand italic lowercase text-2xl md:text-6xl block mt-1 md:mt-2">Cheki</span>
-                        </h2>
-                    </div>
-                </div>
-
-                {/* Right: Booking Panel */}
-                <div className="relative z-20 w-full md:w-[380px] bg-[#1E2132] p-5 sm:p-6 md:p-10 flex flex-col justify-start md:justify-center items-center text-center border-t border-white/5 md:border-t-0 md:border-l shrink-0">
-                    <div className="mb-4 md:mb-10 w-full">
-                        <p className="text-[8px] md:text-[10px] font-bold text-white/20 uppercase tracking-[0.4em] mb-2">Starting From</p>
-                        <div className="inline-block bg-white/5 backdrop-blur-md px-4 md:px-6 py-2 md:py-4 rounded-xl md:rounded-3xl border border-white/10 mx-auto">
-                             <p className="text-lg md:text-3xl font-black text-vibrant-pink tracking-tighter">IDR {(globalSettings.prices.regular_cheki_group || 35000).toLocaleString('id-ID')}</p>
-                          </div>
+          {loading ? (
+              <div className="w-full max-w-5xl md:aspect-[21/8] bg-[#1E2132] rounded-[1.5rem] md:rounded-[2.5rem] animate-pulse border border-white/5" />
+          ) : (
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              className="relative w-full max-w-5xl md:aspect-[21/8] group"
+            >
+              <div className="relative md:absolute md:inset-0 bg-[#1E2132] rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)] md:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] overflow-hidden border border-white/10 flex flex-col md:flex-row items-stretch">
+                  {/* Left: Visual/Promo Area */}
+                  <div className="relative flex-grow overflow-hidden h-[180px] sm:h-[220px] md:h-auto">
+                      <div className="absolute inset-0 opacity-80 md:opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100">
+                        <SkeletonImage
+                          src="/photo/hero/hero.png"
+                          alt="Group Cheki"
+                          wrapperClassName="absolute inset-0"
+                          className="w-full h-full object-cover object-top"
+                        />
                       </div>
-
-                      <button 
-                        onClick={() => addToCart({ name: 'Group Cheki', price: globalSettings.prices.regular_cheki_group || 35000, type: 'group' })}
-                      className="vibrant-button w-full py-4 md:py-6 text-[9px] md:text-[10px] relative group/btn shadow-[0_20px_50px_rgba(255,27,141,0.4)]"
-                    >
-                      <span className="relative z-10 tracking-[0.3em] font-black">AMANKAN SLOT</span>
-                    </button>
-                    
-                    <p className="mt-4 md:mt-8 text-[8px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">Satu tiket buat foto eksklusif bareng<br className="md:hidden"/>semua member yang perform hari ini.</p>
-                </div>
-            </div>
-          </motion.div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#1E2132]/90 hidden md:block" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1E2132] via-transparent to-transparent md:hidden" />
+                      
+                      <div className="absolute top-4 md:top-10 left-4 md:left-10 z-10 w-[80%]">
+                          <div className="bg-vibrant-pink text-white px-2 md:px-4 py-1 md:py-1.5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] mb-2 md:mb-4 shadow-[0_10px_20px_rgba(255,27,141,0.3)] inline-block">
+                             Super Group
+                          </div>
+                          <h2 className="text-3xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none filter drop-shadow-2xl">
+                            Group<br/>
+                            <span className="text-vibrant-yellow font-brand italic lowercase text-2xl md:text-6xl block mt-1 md:mt-2">Cheki</span>
+                          </h2>
+                      </div>
+                  </div>
+  
+                  {/* Right: Booking Panel */}
+                  <div className="relative z-20 w-full md:w-[380px] bg-[#1E2132] p-5 sm:p-6 md:p-10 flex flex-col justify-start md:justify-center items-center text-center border-t border-white/5 md:border-t-0 md:border-l shrink-0">
+                      <div className="mb-4 md:mb-10 w-full">
+                          <p className="text-[8px] md:text-[10px] font-bold text-white/20 uppercase tracking-[0.4em] mb-2">Starting From</p>
+                          <div className="inline-block bg-white/5 backdrop-blur-md px-4 md:px-6 py-2 md:py-4 rounded-xl md:rounded-3xl border border-white/10 mx-auto">
+                               <p className="text-lg md:text-3xl font-black text-vibrant-pink tracking-tighter">IDR {(globalSettings.prices.regular_cheki_group || 35000).toLocaleString('id-ID')}</p>
+                            </div>
+                        </div>
+  
+                        <button 
+                          onClick={() => addToCart({ name: 'Group Cheki', price: globalSettings.prices.regular_cheki_group || 35000, type: 'group' })}
+                        className="vibrant-button w-full py-4 md:py-6 text-[9px] md:text-[10px] relative group/btn shadow-[0_20px_50px_rgba(255,27,141,0.4)]"
+                      >
+                        <span className="relative z-10 tracking-[0.3em] font-black">AMANKAN SLOT</span>
+                      </button>
+                      
+                      <p className="mt-4 md:mt-8 text-[8px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">Satu tiket buat foto eksklusif bareng<br className="md:hidden"/>semua member yang perform hari ini.</p>
+                  </div>
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* Solo Member Grid - Innovative & Staggered */}
@@ -167,80 +175,92 @@ const Cheki = () => {
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-y-10 md:gap-y-16 gap-x-4 md:gap-x-8 px-2 md:px-4 mb-48">
-          {members.map((member, idx) => (
-            <motion.div
-              key={member.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.05 }}
-              whileHover={{ y: -10 }}
-              className="cursor-pointer relative group w-full h-full"
-            >
-              {/* The Polaroid - Now Larger & Directly on Background */}
-              <div className="relative h-full rounded-xl md:rounded-2xl overflow-hidden bg-white p-2 pb-3 md:p-3 md:pb-4 shadow-[0_15px_40px_rgba(0,0,0,0.12)] md:shadow-[0_20px_50px_rgba(0,0,0,0.15)] transition-all duration-500 group-hover:rotate-2 group-hover:scale-[1.05] group-hover:shadow-[0_40px_100px_rgba(0,0,0,0.25)] flex flex-col">
-                  
-                  {/* The Actual Member Photo Area */}
-                  <div className="relative aspect-[4/5] w-full bg-[#121212] rounded-lg overflow-hidden border border-black/5">
-                    <SkeletonImage
-                      src={getMemberImageSrc(member)}
-                      fallbackSrc={getMemberFallbackImage(member)}
-                      alt={member.nickname}
-                      wrapperClassName="w-full h-full"
-                      className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-700"
-                    />
+          {loading ? (
+             Array(10).fill(0).map((_, idx) => (
+               <div key={idx} className="relative h-full rounded-xl md:rounded-2xl bg-white p-2 pb-3 md:p-3 md:pb-4 shadow-lg animate-pulse">
+                  <div className="aspect-[4/5] w-full bg-gray-200 rounded-lg" />
+                  <div className="mt-4 space-y-3">
+                     <div className="h-6 w-2/3 bg-gray-100 rounded mx-auto" />
+                     <div className="h-10 w-full bg-gray-100 rounded-xl" />
+                  </div>
+               </div>
+             ))
+          ) : (
+            members.map((member, idx) => (
+              <motion.div
+                key={member.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05 }}
+                whileHover={{ y: -10 }}
+                className="cursor-pointer relative group w-full h-full"
+              >
+                {/* The Polaroid - Now Larger & Directly on Background */}
+                <div className="relative h-full rounded-xl md:rounded-2xl overflow-hidden bg-white p-2 pb-3 md:p-3 md:pb-4 shadow-[0_15px_40px_rgba(0,0,0,0.12)] md:shadow-[0_20px_50px_rgba(0,0,0,0.15)] transition-all duration-500 group-hover:rotate-2 group-hover:scale-[1.05] group-hover:shadow-[0_40px_100px_rgba(0,0,0,0.25)] flex flex-col">
                     
-                    {/* Film & Flash Effects */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-60 pointer-events-none" />
-                    <div className="absolute inset-0 bg-black/5 mix-blend-multiply pointer-events-none" />
-                  </div>
-
-                  {/* Polaroid Bottom Margin - Info & Action Area */}
-                  <div className="flex-grow pt-3 md:pt-5 pb-1 md:pb-2 px-1 md:px-2 flex flex-col justify-between">
-                      <div className="text-center mb-2 md:mb-4">
-                          <span className="handwritten text-xl sm:text-2xl md:text-5xl tracking-tight leading-none rotate-[-4deg] inline-block opacity-95 transition-transform group-hover:scale-110" 
-                                style={{ 
-                                  color: member.themeColor,
-                                  textShadow: member.themeColor.toUpperCase() === '#F8F9FA' ? '0 2px 4px rgba(0,0,0,0.15), 0 0 10px rgba(0,0,0,0.05)' : 'none',
-                                  WebkitTextStroke: member.themeColor.toUpperCase() === '#F8F9FA' ? '0.8px rgba(26, 26, 29, 0.4)' : 'none'
-                                }}>
-                              {member.nickname}
-                          </span>
-                      </div>
-
-                       <div className="space-y-3 md:space-y-4">
-                          <div className="flex justify-between items-center px-1">
-                              <div className="flex flex-col">
-                                  <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-black/30">Member Cheki</span>
-                                  <span className="text-[7px] md:text-[8px] font-bold text-black/20 uppercase tracking-widest leading-none mt-0.5 md:mt-1">{member.nickname}</span>
+                    {/* The Actual Member Photo Area */}
+                    <div className="relative aspect-[4/5] w-full bg-[#121212] rounded-lg overflow-hidden border border-black/5">
+                      <SkeletonImage
+                        src={getMemberImageSrc(member)}
+                        fallbackSrc={getMemberFallbackImage(member)}
+                        alt={member.nickname}
+                        wrapperClassName="w-full h-full"
+                        className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-700"
+                      />
+                      
+                      {/* Film & Flash Effects */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-60 pointer-events-none" />
+                      <div className="absolute inset-0 bg-black/5 mix-blend-multiply pointer-events-none" />
+                    </div>
+  
+                    {/* Polaroid Bottom Margin - Info & Action Area */}
+                    <div className="flex-grow pt-3 md:pt-5 pb-1 md:pb-2 px-1 md:px-2 flex flex-col justify-between">
+                        <div className="text-center mb-2 md:mb-4">
+                            <span className="handwritten text-xl sm:text-2xl md:text-5xl tracking-tight leading-none rotate-[-4deg] inline-block opacity-95 transition-transform group-hover:scale-110" 
+                                  style={{ 
+                                    color: member.themeColor,
+                                    textShadow: member.themeColor.toUpperCase() === '#F8F9FA' ? '0 2px 4px rgba(0,0,0,0.15), 0 0 10px rgba(0,0,0,0.05)' : 'none',
+                                    WebkitTextStroke: member.themeColor.toUpperCase() === '#F8F9FA' ? '0.8px rgba(26, 26, 29, 0.4)' : 'none'
+                                  }}>
+                                {member.nickname}
+                            </span>
+                        </div>
+  
+                         <div className="space-y-3 md:space-y-4">
+                            <div className="flex justify-between items-center px-1">
+                                <div className="flex flex-col">
+                                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-black/30">Member Cheki</span>
+                                    <span className="text-[7px] md:text-[8px] font-bold text-black/20 uppercase tracking-widest leading-none mt-0.5 md:mt-1">{member.nickname}</span>
+                                </div>
+                                  <span className="text-base md:text-xl font-black text-vibrant-pink leading-none">{Math.floor((globalSettings.prices.regular_cheki_solo || 30000)/1000)}K</span>
                               </div>
-                                <span className="text-base md:text-xl font-black text-vibrant-pink leading-none">{Math.floor((globalSettings.prices.regular_cheki_solo || 30000)/1000)}K</span>
-                            </div>
-                        
-                            <button 
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    addToCart({ name: `${member.nickname} Member Cheki`, price: globalSettings.prices.regular_cheki_solo || 30000, type: 'solo', member });
-                              }}
-                              className="w-full py-3.5 md:py-5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] rounded-xl md:rounded-2xl shadow-lg active:scale-95 transition-all hover:brightness-95"
-                              style={{ 
-                                backgroundColor: member.themeColor,
-                                color: member.themeColor.toUpperCase() === '#F8F9FA' ? '#1A1A1D' : 'white',
-                                border: member.themeColor.toUpperCase() === '#F8F9FA' ? '1px solid rgba(0,0,0,0.1)' : 'none'
-                              }}
-                          >
-                              ADD TO SLIP
-                          </button>
-                      </div>
-                  </div>
-
-                  {/* Aesthetic Details (Small 'Authentic' marker) */}
-                  <div className="absolute top-4 right-4 text-[8px] font-black opacity-10 uppercase tracking-tighter select-none">
-                    VIEOS-PRNT
-                  </div>
-              </div>
-            </motion.div>
-          ))}
+                          
+                              <button 
+                                  onClick={(e) => {
+                                      e.stopPropagation();
+                                      addToCart({ name: `${member.nickname} Member Cheki`, price: globalSettings.prices.regular_cheki_solo || 30000, type: 'solo', member });
+                                }}
+                                className="w-full py-3.5 md:py-5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] rounded-xl md:rounded-2xl shadow-lg active:scale-95 transition-all hover:brightness-95"
+                                style={{ 
+                                  backgroundColor: member.themeColor,
+                                  color: member.themeColor.toUpperCase() === '#F8F9FA' ? '#1A1A1D' : 'white',
+                                  border: member.themeColor.toUpperCase() === '#F8F9FA' ? '1px solid rgba(0,0,0,0.1)' : 'none'
+                                }}
+                            >
+                                ADD TO SLIP
+                            </button>
+                        </div>
+                    </div>
+  
+                    {/* Aesthetic Details (Small 'Authentic' marker) */}
+                    <div className="absolute top-4 right-4 text-[8px] font-black opacity-10 uppercase tracking-tighter select-none">
+                      VIEOS-PRNT
+                    </div>
+                </div>
+              </motion.div>
+            ))
+          )}
         </div>
       </div>
 

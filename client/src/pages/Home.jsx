@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { fetchEvents } from '../api';
-import { ArrowRight, MapPin, Clock, Instagram, Youtube, Cherry, Star } from 'lucide-react';
+import { ArrowRight, MapPin, Clock, Instagram, Youtube, Cherry, Star, MessageCircle } from 'lucide-react';
 import HeroCarousel from '../components/HeroCarousel';
 import Footer from '../components/Footer';
 import SkeletonImage from '../components/SkeletonImage';
@@ -114,17 +114,17 @@ const Home = () => {
               </div>
               
               <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.85] uppercase" style={{ color: 'var(--text-main)' }}>
-                Vieos Idol<br/>
-                <span className="text-vibrant-pink italic handwritten lowercase text-6xl md:text-8xl block mt-4">From Surabaya</span>
+                VIEOS IDOL<br/>
+                <span className="text-vibrant-pink italic handwritten lowercase text-6xl md:text-8xl block mt-4">from surabaya</span>
               </h2>
               
               <div className="space-y-6 max-w-xl">
-                  <p className="text-xl md:text-2xl font-medium leading-relaxed" style={{ color: 'var(--text-main)', opacity: 0.9 }}>
-                     <span className="text-vibrant-pink font-black">LOREM IPSUM</span> — Dolor sit amet, consectetur adipiscing elit.
-                  </p>
+                   <p className="text-xl md:text-2xl font-medium leading-relaxed" style={{ color: 'var(--text-main)', opacity: 0.9 }}>
+                      <span className="text-vibrant-pink font-black">WE CAME FROM ANOTHER UNIVERSE</span> — To steal ur heart! 💜
+                   </p>
                   
                   <p className="text-base md:text-lg leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                     VIEOS adalah grup CHIKA idol asal Surabaya yang lahir pada April 2023. Dengan 10 member penuh semangat, kami hadir membawa energi, penampilan memukau, dan konten idol yang selalu dinantikan. Dari panggung ke panggung, kami terus tumbuh — dan perjalanan ini baru saja dimulai.
                   </p>
 
                  <div className="flex flex-wrap gap-6 items-center pt-8">
@@ -267,7 +267,7 @@ const Home = () => {
                            <div className="absolute inset-0 bg-white/10 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
                            <span className="relative z-10 flex items-center gap-3">
                               HUBUNGI ADMIN (CP)
-                              <Instagram size={18} className="opacity-50" />
+                              <MessageCircle size={18} className="opacity-50" />
                            </span>
                         </a>
                         

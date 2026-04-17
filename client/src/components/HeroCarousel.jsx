@@ -5,8 +5,8 @@ const slides = [
   {
     id: 1,
     title: "SATU CERITA",
-    subtitle: "Kenangan Yang Tak Terlupakan",
-    description: "Setiap teriakanmu adalah energi kami. Di sini, setiap mimpi yang kita bagi akan menjadi melodi yang abadi. Siapkah kamu menjadi bagian dari legenda VIEOS IDOL?",
+    subtitle: "KENANGAN YANG TAK TERLUPAKAN",
+    description: "Teriakan kalian selalu jadi semangat kami di atas panggung. Makanya, yuk terus tulis cerita ini bareng — karena tanpa kalian, VIEOS bukan apa-apa. 🤍",
     image: "/photo/hero/hero.png",
     fallback: "https://images.unsplash.com/photo-1543807535-eceef0bc6599?auto=format&fit=crop&q=80&w=2000",
     type: "INTRO",
@@ -15,8 +15,8 @@ const slides = [
   {
     id: 2,
     title: "MEMOIRE",
-    subtitle: "Rilis Terbaru • Out Now",
-    description: "Babak baru dalam perjalanan kita telah dimulai. \"Memoire\" hadir sebagai saksi pertumbuhan kami. Sudahkah kamu mendengarkan pesan terbaru dari oshimu hari ini?",
+    subtitle: "RILIS TERBARU • OUT NOW",
+    description: "\"Memoire\" akhirnya hadir! Lagu ini bener-bener spesial buat kami — penuh kenangan, penuh perasaan. Udah dengerin belum? 🎵",
     image: "/photo/hero/hero 2.png",
     fallback: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=2070",
     type: "RELEASE",
@@ -25,8 +25,8 @@ const slides = [
   {
     id: 3,
     title: "HADIR & BERSINAR",
-    subtitle: "Jangan Lewatkan Momennya",
-    description: "Setiap event adalah cerita baru yang takkan terulang. Pastikan namamu ada di daftar hadir dan jadilah bagian dari energi luar biasa VIEOS IDOL bulan ini!",
+    subtitle: "JANGAN LEWATKAN MOMENNYA",
+    description: "Ketemu langsung sama VIEOS itu selalu beda rasanya. Kalau ada event kami di kotamu, jangan sampai kelewatan ya — kami nunggu kalian di sana! 💗",
     image: "/photo/hero/hero.png",
     fallback: "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?auto=format&fit=crop&q=80&w=2000",
     type: "EVENT",
