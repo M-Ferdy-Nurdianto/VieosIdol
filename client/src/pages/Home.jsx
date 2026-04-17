@@ -283,10 +283,6 @@ const Home = () => {
                   </div>
                </div>
                
-               {/* Aesthetic Side Label */}
-               <div className="absolute right-[-2rem] bottom-[5rem] rotate-[-90deg] origin-bottom-right hidden xl:block opacity-20 select-none">
-                  <span className="text-7xl font-black tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>COLLABORATION</span>
-               </div>
             </div>
          </div>
       </section>
