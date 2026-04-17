@@ -12,16 +12,12 @@ const Members = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      try {
         const data = await fetchMembers();
         // Map database naming (theme_color) back to camelCase just in case
         setMembers(data.map(m => ({
             ...m,
             themeColor: m.theme_color || m.themeColor
         })));
-      } catch (err) {
-        console.error("Error loading members:", err);
-      }
     };
     loadData();
   }, []);
@@ -64,7 +60,7 @@ const Members = () => {
             className="text-lg md:text-xl font-medium leading-relaxed opacity-80"
             style={{ color: 'var(--text-muted)' }}
           >
-            Kenalan lebih deket sama talenta VIEOS! Tiap member punya pesona dan karakternya sendiri yang siap bikin kamu oleng.
+            Kenali lebih dekat 10 bintang yang siap mengguncang panggung. Tiap member punya semangat unik yang bikin VIEOS makin bersinar!
           </motion.p>
         </div>
       </div>

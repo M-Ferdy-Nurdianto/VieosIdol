@@ -79,6 +79,12 @@ const Checkout = () => {
         ]);
         setLiveEvents(eventsData);
         setLiveSettings(settingsData);
+        
+        // Show warning if no active events
+        const hasActiveEvents = (eventsData || []).some(ev => ev.status !== 'done');
+        if (!eventsData || eventsData.length === 0 || !hasActiveEvents) {
+          showToastMsg("Maaf, saat ini pre-order sedang ditutup karena belum ada event mendatang.");
+        }
       } catch (err) {
         console.error("Failed to load checkout data:", err);
       }
@@ -185,7 +191,12 @@ const Checkout = () => {
       return;
     }
     if (!formData.eventId) {
-      showToastMsg("Pilih event dulu ya!");
+      const hasActiveEvents = liveEvents.some(ev => ev.status !== 'done');
+      if (liveEvents.length === 0 || !hasActiveEvents) {
+        showToastMsg("Maaf, saat ini pre-order sedang ditutup karena belum ada event mendatang.");
+      } else {
+        showToastMsg("Pilih event dulu ya!");
+      }
       return;
     }
 
@@ -560,8 +571,8 @@ const Checkout = () => {
               <div className="mt-4">
                  <button 
                     onClick={handleConfirmOrder}
-                    disabled={isSubmitting || proof.isCompressing}
-                    className={`w-full bg-black text-white py-4 rounded-xl font-black text-[10px] tracking-[0.4em] uppercase shadow-2xl hover:translate-y-[-1px] active:translate-y-0 transition-all relative group overflow-hidden ${isSubmitting || proof.isCompressing ? 'opacity-60 cursor-wait' : ''}`}
+                    disabled={isSubmitting || proof.isCompressing || liveEvents.length === 0 || !liveEvents.some(ev => ev.status !== 'done')}
+                    className={`w-full bg-black text-white py-4 rounded-xl font-black text-[10px] tracking-[0.4em] uppercase shadow-2xl hover:translate-y-[-1px] active:translate-y-0 transition-all relative group overflow-hidden ${isSubmitting || proof.isCompressing || liveEvents.length === 0 || !liveEvents.some(ev => ev.status !== 'done') ? 'opacity-40 cursor-not-allowed filter grayscale' : ''}`}
                   >
                      <span className="relative z-10 flex items-center justify-center gap-3">
                        {isSubmitting ? 'PROSES...' : proof.isCompressing ? 'KOMPRESI GAMBAR...' : 'SELESAIKAN ORDER'} <Send size={12} className="group-hover:translate-x-1 transition-transform" />

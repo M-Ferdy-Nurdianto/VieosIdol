@@ -45,10 +45,17 @@ const Cheki = () => {
   }, []);
 
   const addToCart = (item) => {
+    // Check if there are any active events
+    const hasActiveEvents = liveEvents.some(ev => ev.status !== 'done');
+    if (liveEvents.length === 0 || !hasActiveEvents) {
+      showToastMsg("Maaf, saat ini pre-order sedang ditutup karena belum ada event mendatang.");
+      return;
+    }
+
     const newCart = [...cart, { ...item, cartId: Math.random() }];
     setCart(newCart);
     localStorage.setItem('vieos_cart', JSON.stringify(newCart));
-    showToastMsg(`${item.name} Berhasil Ditambah!`);
+    showToastMsg(`${item.name} Berhasil Ditambah!`, 'success');
   };
 
   const removeFromCart = (cartId) => {
