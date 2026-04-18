@@ -500,7 +500,8 @@ const Admin = () => {
             method: 'DELETE'
           });
           if (res.ok) {
-            showToast("Event berhasil dihapus & laporan diunduh.");
+            showToast("Event berhasil dihapus secara permanen.");
+            showToast("Data cadangan (Excel & PDF) telah diunduh.", "info");
             fetchData();
           } else {
             showToast("Gagal menghapus event", "error");
