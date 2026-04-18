@@ -1042,7 +1042,7 @@ exports.exportToPdf = async (req, res) => {
 
         const pdfOutput = doc.output();
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=VIEOS_Report_${eventId}.pdf`);
+        res.setHeader('Content-Disposition', `attachment; filename=VIEOS_Report_${event ? event.name.replace(/\s+/g, '_') : 'All'}.pdf`);
         res.send(Buffer.from(pdfOutput, 'binary'));
     } catch (error) {
         console.error('exportToPdf error:', error);

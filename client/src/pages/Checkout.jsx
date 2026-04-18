@@ -352,17 +352,16 @@ const Checkout = () => {
                          />
                       </div>
                    </div>
-
                    <div className="space-y-1 relative group/select">
-                      <label className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-black/40 mb-1 block leading-none">
+                      <label className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-black/40 mb-1.5 block leading-none flex items-center gap-1">
                          <Calendar size={9} /> Pilih Event
                       </label>
                       <div className="relative">
                          <div 
                            onClick={() => setFormData(prev => ({ ...prev, isDropdownOpen: !prev.isDropdownOpen }))}
-                           className="w-full bg-white/40 border-b border-black/10 p-1.5 text-[11px] font-bold text-black cursor-pointer flex justify-between items-center transition-colors hover:border-vibrant-pink"
+                           className="w-full bg-white/60 backdrop-blur-md rounded-xl border border-black/5 p-2.5 text-[11px] font-bold text-black cursor-pointer flex justify-between items-center transition-all hover:border-vibrant-pink/50 hover:shadow-lg hover:shadow-vibrant-pink/5 group/trigger"
                          >
-                            <span className={!formData.eventId ? "text-black/20" : "flex items-center gap-2"}>
+                            <span className={!formData.eventId ? "text-black/20 font-black tracking-widest text-[9px]" : "flex items-center gap-2"}>
                                {formData.eventId ? (
                                  <>
                                    {liveEvents.find((e) => e.id.toString() === String(formData.eventId))?.name}
@@ -376,75 +375,74 @@ const Checkout = () => {
                                            ? 'bg-purple-500/15 text-purple-600 border border-purple-500/20' 
                                            : 'bg-green-500/15 text-green-600 border border-green-500/20'
                                        }`}>
-                                         {isSp ? '★ SPESIAL' : '● BIASA'}
+                                         {isSp ? '★ SPESIAL' : '● NORMAL'}
                                        </span>
                                      );
                                    })()}
                                  </>
-                               ) : "-- Pilih Event --"}
+                               ) : "--- PILIH EVENT ---"}
                             </span>
                             <motion.div
                               animate={{ rotate: formData.isDropdownOpen ? 180 : 0 }}
-                              transition={{ duration: 0.2 }}
+                              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                              className="text-black/30 group-hover/trigger:text-vibrant-pink"
                             >
-                               <ChevronLeft size={10} className="-rotate-90" />
+                               <ChevronLeft size={12} className="-rotate-90" />
                             </motion.div>
                          </div>
 
                          <AnimatePresence>
                             {formData.isDropdownOpen && (
                                <motion.div
-                                 initial={{ opacity: 0, y: 10 }}
-                                 animate={{ opacity: 1, y: 0 }}
-                                 exit={{ opacity: 0, y: 10 }}
-                                 className="absolute top-full left-0 w-full mt-1 bg-white shadow-2xl rounded-xl overflow-hidden z-[100] border-2 border-black/5"
+                                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                 animate={{ opacity: 1, y: 0, scale: 1 }}
+                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                 transition={{ type: "spring", duration: 0.4 }}
+                                 className="absolute top-[calc(100%+8px)] left-0 w-full bg-white/95 backdrop-blur-2xl shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] rounded-2xl overflow-hidden z-[100] border border-black/5 p-1.5 gap-1 flex flex-col"
                                >
                                    {liveEvents.map(ev => {
                                       const isCompleted = ev.status === 'done';
                                       const isSpecial = ev.type === 'special';
                                       return (
-                                        <div 
+                                        <motion.div 
                                           key={ev.id}
                                           onClick={() => {
-                                          if (isCompleted) {
-                                              showToastMsg("Event sudah selesai, Kak!");
-                                              return;
-                                            }
-                                            setFormData(prev => ({ ...prev, eventId: ev.id, isDropdownOpen: false }));
+                                           if (isCompleted) {
+                                               showToastMsg("Event sudah selesai, Kak!");
+                                               return;
+                                             }
+                                             setFormData(prev => ({ ...prev, eventId: ev.id, isDropdownOpen: false }));
                                           }}
-                                          className={`p-3 text-[10px] font-black uppercase tracking-widest transition-colors border-b border-black/5 last:border-0 flex items-center justify-between ${
+                                          className={`group/item p-3 md:p-4 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-between overflow-hidden relative ${
                                             isCompleted 
                                               ? 'bg-black/5 text-black/20 cursor-not-allowed' 
-                                              : isSpecial
-                                                ? 'text-purple-700 hover:bg-purple-600 hover:text-white cursor-pointer'
-                                                : 'text-black hover:bg-vibrant-pink hover:text-white cursor-pointer'
+                                              : 'text-black hover:bg-black/5 cursor-pointer'
                                           }`}
                                         >
-                                           <span className="flex items-center gap-2">
-                                             {isSpecial && <Sparkles size={10} className="flex-shrink-0" />}
-                                             {ev.name}
-                                           </span>
-                                           <div className="flex items-center gap-1.5">
+                                           <div className="flex items-center gap-3 relative z-10">
+                                             {isSpecial && <Sparkles size={11} className="text-purple-500" />}
+                                             <span className={isCompleted ? 'opacity-40' : 'text-black font-black'}>{ev.name}</span>
+                                           </div>
+
+                                           <div className="flex items-center gap-1.5 relative z-10">
                                              {isSpecial ? (
-                                               <span className="text-[7px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-600 border border-purple-500/20">
+                                               <span className="text-[7px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/10 font-black">
                                                  ★ SPESIAL
                                                </span>
                                              ) : (
-                                               <span className="text-[7px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-600 border border-green-500/20">
-                                                 ● BIASA
+                                               <span className="text-[7px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 border border-green-500/10 font-black">
+                                                 ● NORMAL
                                                </span>
                                              )}
-                                             <span className={`text-[8px] px-1.5 py-0.5 rounded-full ${
+                                             <span className={`text-[8px] px-2 py-0.5 rounded-full font-black ${
                                                isCompleted 
                                                  ? 'bg-black/10 text-black/30' 
-                                                 : isSpecial
-                                                   ? 'bg-purple-500/10 text-purple-500'
-                                                   : 'bg-vibrant-pink/10 text-vibrant-pink'
+                                                 : 'bg-black/5 text-black/40 border border-black/5'
                                              }`}>
                                                {isCompleted ? 'SELESAI' : (ev.event_date || '-')}
                                              </span>
                                            </div>
-                                        </div>
+                                        </motion.div>
                                       );
                                    })}
                                </motion.div>
@@ -658,7 +656,7 @@ const Checkout = () => {
                                    ? 'bg-purple-500/15 text-purple-600 border border-purple-500/20'
                                    : 'bg-green-500/15 text-green-600 border border-green-500/20'
                                }`}>
-                                 {isSp ? '★ EVENT SPESIAL' : '● EVENT BIASA'}
+                                 {isSp ? '★ EVENT SPESIAL' : '● EVENT NORMAL'}
                                </span>
                              );
                            })()}

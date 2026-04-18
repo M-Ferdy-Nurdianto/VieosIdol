@@ -48,9 +48,11 @@ const Admin = () => {
          
          const blob = await response.blob();
          const url = window.URL.createObjectURL(blob);
+         const eventObj = events.find(e => String(e.id) === String(eventId));
+         const nameForFile = eventObj ? eventObj.name.replace(/\s+/g, '_') : 'All';
          const a = document.createElement('a');
          a.href = url;
-         a.download = `VIEOS_Report_${eventId}.${type === 'excel' ? 'xlsx' : 'pdf'}`;
+         a.download = `VIEOS_Report_${nameForFile}.${type === 'excel' ? 'xlsx' : 'pdf'}`;
          document.body.appendChild(a);
          a.click();
          a.remove();
