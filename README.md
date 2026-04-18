@@ -57,3 +57,5 @@ Proyek ini sudah dikonfigurasi untuk dideploy ke Vercel sebagai monorepo.
 
 ---
 *Dibuat dengan ❤️ untuk komunitas.*
+
+© 2026 VIEOS IDOL. All rights reserved.
