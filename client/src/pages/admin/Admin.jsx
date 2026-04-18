@@ -1703,7 +1703,7 @@ const Admin = () => {
                                     <li>Klik pada tombol <b>Member</b> untuk menambah jumlah (Klik kanan untuk mengurangi).</li>
                                     <li>Pilih <b>Payment Method</b> (Cash / QR).</li>
                                     <li>Klik <b>Simpan Pesanan</b> setelah pembayaran diterima.</li>
-                                    <li className="text-vibrant-pink font-bold">Jika salah input, gunakan tombol âœ ï¸  (Pensil) di tabel riwayat untuk merubah data.</li>
+                                    <li className="text-vibrant-pink font-bold">Jika salah input, gunakan tombol 📝 (Pensil) di tabel riwayat untuk merubah data.</li>
                                  </ul>
                               </div>
                            </div>
@@ -1732,7 +1732,7 @@ const Admin = () => {
                               EKSPORT DATA & LAPORAN
                            </h3>
                            <div className="space-y-4">
-                              <p className="text-xs text-white/40 leading-relaxed">Menu <b>Ekspor Data</b> digunakan untuk mengunduh laporan penjualan dalam format <b>Excel</b> atau <b>PDF</b>.</p>
+                              <p className="text-xs text-white/40 leading-relaxed">Menu <b>Ekspor Data</b> digunakan untuk mengunduh laporan penjualan dalam format <b>Excel</b> atau <b>PDF</b>. Nama file hasil ekspor kini otomatis menyertakan Nama Event agar lebih mudah dicari.</p>
                               <div className="p-4 bg-white/5 rounded-xl border border-white/5 space-y-2">
                                  <p className="text-[10px] text-white/40 leading-relaxed"><span className="text-white font-bold">PDF:</span> Cocok untuk laporan cetak / bukti rekap harian ke manager.</p>
                                  <p className="text-[10px] text-white/40 leading-relaxed"><span className="text-white font-bold">EXCEL:</span> Digunakan jika ingin mengolah data angka atau pivot table.</p>
@@ -1748,6 +1748,7 @@ const Admin = () => {
                            <div className="space-y-4 relative z-10 text-xs text-white/60 leading-relaxed">
                               <div className="p-4 bg-white/5 rounded-xl border border-white/5">
                                  <ul className="list-disc ml-4 space-y-2">
+                                    <li><b>Kategori Event:</b> Event terbagi menjadi <b>NORMAL</b> (Standar) dan <b>SPESIAL</b> (Tema khusus).</li>
                                     <li><b>Filter Event:</b> Daftar pesanan bisa difilter berdasarkan event tertentu. Pilih event di dropdown sebelah fitur pencarian pada tab Pesanan.</li>
                                     <li><b>PO & OTS Terpisah:</b> Tabel pesanan telah dibagi dua bagian: OTS (pesanan langsung di booth) dan PO (pre-order) untuk mempermudah pengecekan.</li>
                                     <li><b>Catatan PO:</b> Kolom Catatan PO ditambahkan di tabel PO untuk melihat pesan khusus dari pembeli.</li>
