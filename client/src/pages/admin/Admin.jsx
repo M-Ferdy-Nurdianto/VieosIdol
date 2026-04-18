@@ -451,16 +451,31 @@ const Admin = () => {
     setConfirmModal({
       show: true,
       title: 'Hapus Event',
-      message: 'PERINGATAN: Apakah Anda yakin ingin menghapus event ini? Sebelum menghapus, pastikan Anda sudah melakukan Export ke PDF/Spreadsheet. Event yang sudah selesai otomatis dihapus setelah 67 hari oleh sistem.',
+      message: 'PERINGATAN: Menghapus event akan menghapus semua data pesanan terkait secara permanen. Sistem akan OTOMATIS mengunduh laporan Excel & PDF sebagai cadangan sebelum menghapus data.',
       onConfirm: async () => {
         setConfirmModal(prev => ({ ...prev, show: false }));
         setDeletingId(id);
         try {
+          // 1. Trigger Auto-Downloads
+          showToast("Menyiapkan laporan cadangan...");
+          
+          // Excel
+          window.open(`${ADMIN_API}/orders/export/excel/${id}`, '_blank');
+          
+          // PDF (with slight delay to prevent pop-up blocking)
+          setTimeout(() => {
+            window.open(`${ADMIN_API}/orders/export/pdf/${id}`, '_blank');
+          }, 800);
+
+          // 2. Small delay to ensure browser initiates downloads
+          await new Promise(resolve => setTimeout(resolve, 2500));
+
+          // 3. Delete from DB
           const res = await fetch(`${ADMIN_API}/orders/events/${id}`, {
             method: 'DELETE'
           });
           if (res.ok) {
-            showToast("Event berhasil dihapus");
+            showToast("Event berhasil dihapus & laporan diunduh.");
             fetchData();
           } else {
             showToast("Gagal menghapus event", "error");

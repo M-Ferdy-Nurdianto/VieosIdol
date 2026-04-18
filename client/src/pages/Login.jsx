@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, User, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
+import { Lock, User, ShieldCheck, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { API_URL } from '../api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -89,13 +90,20 @@ const Login = () => {
                   <Lock size={18} />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 text-white text-sm rounded-2xl block pl-12 p-4 focus:ring-1 focus:ring-vibrant-pink focus:border-vibrant-pink transition-all outline-none placeholder:text-gray-600"
+                  className="w-full bg-white/5 border border-white/10 text-white text-sm rounded-2xl block pl-12 pr-12 p-4 focus:ring-1 focus:ring-vibrant-pink focus:border-vibrant-pink transition-all outline-none placeholder:text-gray-600"
                   placeholder="••••••••"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-vibrant-pink transition-colors cursor-pointer"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 

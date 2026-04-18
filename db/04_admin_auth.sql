@@ -17,15 +17,14 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 3. Masukkan data AdminVieos dengan password ter-hash
--- Ganti 'VieosAdmin2026' dengan password yang ingin Anda simpan
+-- 3. Masukkan data Admin
+-- Catatan: Jangan menyimpan password dalam file SQL secara permanen.
+-- Jalankan command INSERT secara manual di SQL Editor Supabase untuk membuat akun Admin pertama.
+/*
 INSERT INTO public.admin_users (username, password_hash)
-VALUES (
-    'AdminVieos', 
-    crypt('VieosAdmin2026', gen_salt('bf'))
-)
-ON CONFLICT (username) DO UPDATE 
-SET password_hash = crypt('VieosAdmin2026', gen_salt('bf'));
+VALUES ('UsernameAnda', crypt('PasswordAnda', gen_salt('bf')));
+*/
+
 
 -- 4. Aktifkan RLS
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
