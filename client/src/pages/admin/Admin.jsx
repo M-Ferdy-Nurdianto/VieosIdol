@@ -7,8 +7,9 @@ import {
    RefreshCcw, Eye, ChevronRight, User, Users,
    Calendar, CreditCard, ExternalLink, Save, Pencil,
    Image, Menu, X, Trash2,
-   AlertTriangle
+   AlertTriangle, Download, Loader2
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { fetchMembers, API_URL } from '../../api';
 import DatePicker from '../../components/DatePicker';
 import VIEOSSelect from './components/VIEOSSelect';
@@ -22,7 +23,9 @@ import { supabase } from '../../supabase';
 const ADMIN_API = API_URL;
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('orders');
+  const [exportingId, setExportingId] = useState(null);
+  const [exportType, setExportType] = useState(null); // 'excel' or 'pdf'
   const [modalTab, setModalTab] = useState('info'); // 'info' or 'lineup'
   const [orders, setOrders] = useState([]);
   const [events, setEvents] = useState([]);
@@ -31,6 +34,37 @@ const Admin = () => {
 
   const [editingOTS, setEditingOTS] = useState(null); // Order object being edited
   const [showEditOTSModal, setShowEditOTSModal] = useState(false);
+
+  // -------------------------------------------------------------------------
+  // EXPORT HANDLER
+  // -------------------------------------------------------------------------
+  const handleExport = async (eventId, type) => {
+      setExportingId(eventId);
+      setExportType(type);
+      
+      try {
+         const response = await fetch(`${API_URL}/orders/export/${type}/${eventId}`);
+         if (!response.ok) throw new Error('Export failed');
+         
+         const blob = await response.blob();
+         const url = window.URL.createObjectURL(blob);
+         const a = document.createElement('a');
+         a.href = url;
+         a.download = `VIEOS_Report_${eventId}.${type === 'excel' ? 'xlsx' : 'pdf'}`;
+         document.body.appendChild(a);
+         a.click();
+         a.remove();
+         window.URL.revokeObjectURL(url);
+         
+         showToast(`Laporan ${type.toUpperCase()} berhasil diunduh!`, 'success');
+      } catch (error) {
+         console.error('Export error:', error);
+         showToast('Gagal mengunduh laporan.', 'error');
+      } finally {
+         setExportingId(null);
+         setExportType(null);
+      }
+   };
 
   const handleLogout = () => {
     showToast("Sampai jumpa, Admin!");
@@ -92,12 +126,10 @@ const Admin = () => {
   const [isSavingOTS, setIsSavingOTS] = useState(false);
   const [isSavingEvent, setIsSavingEvent] = useState(false);
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
-  const [isExporting, setIsExporting] = useState(null);
   const [isSavingGlobalSettings, setIsSavingGlobalSettings] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [isUpdatingOTS, setIsUpdatingOTS] = useState(false);
   
-  // ... (state definitions remain the same) ...
   const [otsForm, setOTSForm] = useState({
     nickname: '',
     contact: '',
@@ -172,13 +204,6 @@ const Admin = () => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3000);
   }, []);
-
-  const LoadingSpinner = ({ size = 16, className = "" }) => (
-    <div className={`relative ${className}`} style={{ width: size, height: size }}>
-      <div className="absolute inset-0 border-2 border-white/10 rounded-full"></div>
-      <div className="absolute inset-0 border-2 border-t-vibrant-pink rounded-full animate-spin"></div>
-    </div>
-  );
 
   const fetchData = async () => {
     setLoading(true);
@@ -520,16 +545,6 @@ const Admin = () => {
       showToast("Terjadi kesalahan sistem", "error");
     } finally {
       setIsUpdatingOTS(false);
-    }
-  };
-
-  const exportData = async (type, eventId) => {
-    setIsExporting(type);
-    try {
-      window.open(`${ADMIN_API}/orders/export/${type}/${eventId}`, '_blank');
-       await new Promise(r => setTimeout(r, 1000));
-    } finally {
-       setIsExporting(null);
     }
   };
 
@@ -1235,25 +1250,26 @@ const Admin = () => {
                      
                      <div className="space-y-4">
                        <VIEOSSelect 
-                          value={filter.event}
-                          onChange={val => setFilter(prev => ({...prev, event: val}))}
-                          placeholder="Pilih Event"
-                          className="w-full"
-                          options={[
-                            { value: 'all', label: 'Semua Event' },
-                            ...events.map((ev) => {
-                              const { badge, badgeKind } = eventOptionBadge(ev);
-                              return { value: ev.id, label: ev.name, badge, badgeKind };
-                            })
-                          ]}
-                       />
-                        <button 
-                            disabled={isExporting === 'excel'}
-                            onClick={() => exportData('excel', filter.event)}
-                            className={`w-full py-3 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors shadow-lg ${isExporting === 'excel' ? 'bg-green-800 cursor-not-allowed opacity-50' : 'bg-green-600 hover:bg-green-500 shadow-green-900/20'}`}
-                         >
-                            {isExporting === 'excel' ? 'Mengunduh...' : 'Unduh Excel'}
-                         </button>
+                           value={filter.event}
+                           onChange={val => setFilter(prev => ({...prev, event: val}))}
+                           placeholder="Pilih Event"
+                           className="w-full"
+                           options={[
+                             { value: 'all', label: 'Semua Event' },
+                             ...events.map((ev) => {
+                               const { badge, badgeKind } = eventOptionBadge(ev);
+                               return { value: ev.id, label: ev.name, badge, badgeKind };
+                             })
+                           ]}
+                        />
+                         <button 
+                             disabled={exportingId === filter.event && exportType === 'excel'}
+                             onClick={() => handleExport(filter.event, 'excel')}
+                             className={`w-full py-3 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg flex items-center justify-center gap-2 ${exportingId === filter.event && exportType === 'excel' ? 'bg-green-800 cursor-not-allowed opacity-50' : 'bg-green-600 hover:bg-green-500 shadow-green-900/20'}`}
+                          >
+                             {exportingId === filter.event && exportType === 'excel' ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />} 
+                             {exportingId === filter.event && exportType === 'excel' ? 'Mengunduh...' : 'Unduh Excel'}
+                          </button>
                      </div>
                   </div>
 
@@ -1267,25 +1283,26 @@ const Admin = () => {
                      
                      <div className="space-y-4">
                        <VIEOSSelect 
-                          value={filter.event}
-                          onChange={val => setFilter(prev => ({...prev, event: val}))}
-                          placeholder="Pilih Event"
-                          className="w-full"
-                          options={[
-                            { value: 'all', label: 'Semua Event' },
-                            ...events.map((ev) => {
-                              const { badge, badgeKind } = eventOptionBadge(ev);
-                              return { value: ev.id, label: ev.name, badge, badgeKind };
-                            })
-                          ]}
-                       />
-                        <button 
-                            disabled={isExporting === 'pdf'}
-                            onClick={() => exportData('pdf', filter.event)}
-                            className={`w-full py-3 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${isExporting === 'pdf' ? 'bg-red-800 cursor-not-allowed opacity-50' : 'bg-red-600 hover:bg-red-500'}`}
-                         >
-                           {isExporting === 'pdf' ? 'Mengunduh...' : 'Unduh PDF'}
-                         </button>
+                           value={filter.event}
+                           onChange={val => setFilter(prev => ({...prev, event: val}))}
+                           placeholder="Pilih Event"
+                           className="w-full"
+                           options={[
+                             { value: 'all', label: 'Semua Event' },
+                             ...events.map((ev) => {
+                               const { badge, badgeKind } = eventOptionBadge(ev);
+                               return { value: ev.id, label: ev.name, badge, badgeKind };
+                             })
+                           ]}
+                        />
+                         <button 
+                             disabled={exportingId === filter.event && exportType === 'pdf'}
+                             onClick={() => handleExport(filter.event, 'pdf')}
+                             className={`w-full py-3 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg flex items-center justify-center gap-2 ${exportingId === filter.event && exportType === 'pdf' ? 'bg-red-800 cursor-not-allowed opacity-50' : 'bg-red-600 hover:bg-red-500 shadow-red-900/20'}`}
+                          >
+                            {exportingId === filter.event && exportType === 'pdf' ? <Loader2 className="animate-spin" size={16} /> : <FileText size={16} />}
+                            {exportingId === filter.event && exportType === 'pdf' ? 'Mengunduh...' : 'Unduh PDF'}
+                          </button>
                      </div>
                   </div>
                 </div>
@@ -1609,29 +1626,45 @@ const Admin = () => {
                                        <h4 className="font-bold text-sm group-hover:text-vibrant-pink transition-colors">{ev.name}</h4>
                                        <div className="flex gap-2 text-xs font-mono text-white/40 mt-1 uppercase">
                                           <span>{ev.event_date || '-'}</span>
-                                          <span>â€¢</span>
+                                          <span>•</span>
                                           <span className={ev.status === 'ongoing' ? 'text-vibrant-pink font-bold' : ''}>{ev.status}</span>
-                                          {ev.type === 'special' && <span className="text-purple-400 font-bold">â€¢ SPECIAL</span>}
+                                          {ev.type === 'special' && <span className="text-purple-400 font-bold">• SPECIAL</span>}
                                        </div>
                                     </div>
                                  </div>
                                  <div className="flex gap-2">
                                    <button 
+                                       onClick={() => handleExport(ev.id, 'excel')}
+                                       disabled={exportingId === ev.id}
+                                       className="p-2 bg-green-500/10 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-all relative overflow-hidden"
+                                       title="Download Excel"
+                                   >
+                                       {exportingId === ev.id && exportType === 'excel' ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                                   </button>
+                                   <button 
+                                       onClick={() => handleExport(ev.id, 'pdf')}
+                                       disabled={exportingId === ev.id}
+                                       className="p-2 bg-vibrant-pink/10 text-vibrant-pink rounded-lg hover:bg-vibrant-pink hover:text-white transition-all"
+                                       title="Download PDF"
+                                   >
+                                       {exportingId === ev.id && exportType === 'pdf' ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                                   </button>
+                                   <button 
                                      onClick={() => openEventModal('edit', ev)}
-                                 className={`p-2 rounded-lg transition-colors ${eventModal.data?.id === ev.id ? 'bg-white text-black' : 'bg-white/5 text-white/40 hover:text-white'}`}
-                               >
-                                 <Settings size={16} />
-                               </button>
-                               <button 
-                                 disabled={deletingId === ev.id}
-                                 onClick={() => deleteEvent(ev.id)}
-                                 className={`p-2 rounded-lg transition-colors ${deletingId === ev.id ? 'bg-white/5 text-white/20' : 'bg-white/5 text-white/40 hover:bg-red-500/10 hover:text-red-500'}`}
-                               >
-                                 {deletingId === ev.id ? <RefreshCcw size={14} className="animate-spin" /> : <Trash2 size={16} />}
-                               </button>
-                             </div>
-                           </div>
-                         ))}
+                                     className={`p-2 rounded-lg transition-colors ${eventModal.data?.id === ev.id ? 'bg-white text-black' : 'bg-white/5 text-white/40 hover:text-white'}`}
+                                   >
+                                     <Settings size={16} />
+                                   </button>
+                                   <button 
+                                     disabled={deletingId === ev.id}
+                                     onClick={() => deleteEvent(ev.id)}
+                                     className={`p-2 rounded-lg transition-colors ${deletingId === ev.id ? 'bg-white/5 text-white/20' : 'bg-white/5 text-white/40 hover:bg-red-500/10 hover:text-red-500'}`}
+                                   >
+                                     {deletingId === ev.id ? <RefreshCcw size={14} className="animate-spin" /> : <Trash2 size={16} />}
+                                   </button>
+                                 </div>
+                               </div>
+                             ))}
                             {events.length === 0 && (
                               <div className="text-center py-12 bg-[#121214] border border-white/10 rounded-xl">
                                 <p className="text-white/20 text-xs uppercase tracking-widest">Event tidak ditemukan</p>

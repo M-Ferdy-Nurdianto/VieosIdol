@@ -8,23 +8,16 @@ import { getMemberImageSrc, getMemberFallbackImage } from '../utils/memberImages
 
 const Members = () => {
   const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const loadData = async () => {
-        try {
-            const data = await fetchMembers();
-            // Map database naming (theme_color) back to camelCase just in case
-            setMembers(data.map(m => ({
-                ...m,
-                themeColor: m.theme_color || m.themeColor
-            })));
-        } catch (err) {
-            console.error("Failed to load members:", err);
-        } finally {
-            setLoading(false);
-        }
+        const data = await fetchMembers();
+        // Map database naming (theme_color) back to camelCase just in case
+        setMembers(data.map(m => ({
+            ...m,
+            themeColor: m.theme_color || m.themeColor
+        })));
     };
     loadData();
   }, []);
@@ -74,72 +67,59 @@ const Members = () => {
 
       {/* Structured Profile Gallery - 5 Column Grid on Desktop */}
       <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-y-12 md:gap-y-16 gap-x-4 md:gap-x-8 px-4 justify-items-center">
-        {loading ? (
-            // Skeletons
-            Array(10).fill(0).map((_, idx) => (
-                <div key={idx} className="w-full animate-pulse">
-                    <div className="relative aspect-[4/5] rounded-xl overflow-hidden border-[6px] border-white/5 bg-white/5 shadow-2xl" />
-                    <div className="mt-5 space-y-2 flex flex-col items-center">
-                        <div className="h-4 w-24 bg-white/5 rounded" />
-                        <div className="h-2 w-16 bg-white/5 rounded opacity-40" />
-                    </div>
+        {members.map((member, idx) => (
+          <motion.div
+            key={member.id}
+            initial={{ y: 20, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: idx * 0.05, type: 'spring', stiffness: 100 }}
+            whileHover={{ y: -10, scale: 1.02 }}
+            onClick={() => navigate(`/members/${member.id}`)}
+            className="cursor-pointer relative group w-full"
+          >
+            {/* The Frame - Professional & Simple */}
+            <div 
+              className="relative aspect-[4/5] rounded-xl overflow-hidden border-[6px] shadow-2xl transition-all duration-500 bg-white"
+              style={{ borderColor: member.themeColor }}
+            >
+              <SkeletonImage
+                src={getMemberImageSrc(member)}
+                fallbackSrc={getMemberFallbackImage(member)}
+                alt={member.nickname}
+                wrapperClassName="w-full h-full"
+                className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-700"
+              />
+              
+              {/* Corner Bracket Accents (Custom Look) */}
+              <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 mix-blend-difference opacity-50" style={{ borderColor: 'white' }} />
+              <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 mix-blend-difference opacity-50" style={{ borderColor: 'white' }} />
+
+              {/* ID Badge */}
+              <div className="absolute top-0 right-0 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="text-[8px] font-black text-white bg-black/60 px-2 py-0.5 rounded backdrop-blur-sm border border-white/10 uppercase tracking-widest">
+                  #{member.id < 10 ? `0${member.id}` : member.id}
                 </div>
-            ))
-        ) : (
-            members.map((member, idx) => (
-              <motion.div
-                key={member.id}
-                initial={{ y: 20, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.05, type: 'spring', stiffness: 100 }}
-                whileHover={{ y: -10, scale: 1.02 }}
-                onClick={() => navigate(`/members/${member.id}`)}
-                className="cursor-pointer relative group w-full"
-              >
-                {/* The Frame - Professional & Simple */}
-                <div 
-                  className="relative aspect-[4/5] rounded-xl overflow-hidden border-[6px] shadow-2xl transition-all duration-500 bg-white"
-                  style={{ borderColor: member.themeColor }}
-                >
-                  <SkeletonImage
-                    src={getMemberImageSrc(member)}
-                    fallbackSrc={getMemberFallbackImage(member)}
-                    alt={member.nickname}
-                    wrapperClassName="w-full h-full"
-                    className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-700"
-                  />
-                  
-                  {/* Corner Bracket Accents (Custom Look) */}
-                  <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 mix-blend-difference opacity-50" style={{ borderColor: 'white' }} />
-                  <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 mix-blend-difference opacity-50" style={{ borderColor: 'white' }} />
-    
-                  {/* ID Badge */}
-                  <div className="absolute top-0 right-0 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="text-[8px] font-black text-white bg-black/60 px-2 py-0.5 rounded backdrop-blur-sm border border-white/10 uppercase tracking-widest">
-                      #{member.id < 10 ? `0${member.id}` : member.id}
-                    </div>
-                  </div>
-    
-                  {/* Theme Color Glow on Hover */}
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500"
-                    style={{ backgroundColor: member.themeColor }}
-                  />
-                </div>
-    
-                {/* Name Tag Below - Modern & Clean */}
-                <div className="mt-5 text-center">
-                  <h3 className="text-base md:text-lg font-black uppercase tracking-tighter leading-none mb-1 transition-colors group-hover:text-vibrant-pink" style={{ color: 'var(--text-main)' }}>
-                    {member.nickname}
-                  </h3>
-                  <p className="text-[8px] font-bold uppercase tracking-[0.3em] opacity-40 italic" style={{ color: 'var(--text-muted)' }}>
-                    {member.vibe}
-                  </p>
-                </div>
-              </motion.div>
-            ))
-        )}
+              </div>
+
+              {/* Theme Color Glow on Hover */}
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500"
+                style={{ backgroundColor: member.themeColor }}
+              />
+            </div>
+
+            {/* Name Tag Below - Modern & Clean */}
+            <div className="mt-5 text-center">
+              <h3 className="text-base md:text-lg font-black uppercase tracking-tighter leading-none mb-1 transition-colors group-hover:text-vibrant-pink" style={{ color: 'var(--text-main)' }}>
+                {member.nickname}
+              </h3>
+              <p className="text-[8px] font-bold uppercase tracking-[0.3em] opacity-40 italic" style={{ color: 'var(--text-muted)' }}>
+                {member.vibe}
+              </p>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </div>
   );
