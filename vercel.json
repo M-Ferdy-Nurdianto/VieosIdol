@@ -1,6 +1,12 @@
 {
   "version": 2,
   "name": "vieos-project",
+  "crons": [
+    {
+      "path": "/api/keep-alive",
+      "schedule": "0 0 */2 * *"
+    }
+  ],
   "builds": [
     {
       "src": "server/index.js",

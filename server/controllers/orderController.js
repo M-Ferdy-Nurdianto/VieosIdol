@@ -546,8 +546,28 @@ exports.updateSettings = async (req, res) => {
 // =============================================
 // KEEP ALIVE
 // =============================================
-exports.getKeepAlive = (req, res) => {
-    res.status(200).send('Alive and connected to Supabase.');
+exports.getKeepAlive = async (req, res) => {
+    try {
+        // Perform a simple query to keep Supabase active
+        const { count, error } = await supabase
+            .from('members')
+            .select('id', { count: 'exact', head: true });
+        
+        if (error) throw error;
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Database is active and connected.',
+            timestamp: new Date().toISOString(),
+            recordCount: count
+        });
+    } catch (error) {
+        console.error('Keep-alive failed:', error);
+        res.status(500).json({ 
+            status: 'error', 
+            message: error.message 
+        });
+    }
 };
 
 // =============================================

@@ -17,6 +17,7 @@ import SidebarItem from './components/SidebarItem';
 import LoadingSpinner from './components/LoadingSpinner';
 import { eventOptionBadge } from './utils';
 import { getMemberImageSrc, getMemberFallbackImage } from '../../utils/memberImages';
+import { supabase } from '../../supabase';
 
 const ADMIN_API = API_URL;
 
@@ -238,25 +239,35 @@ const Admin = () => {
   }, [orders]);
 
   useEffect(() => {
-    const POLL_MS = 12000;
-    const poll = async () => {
-      if (document.visibilityState !== 'visible') return;
-      try {
+    // Real-time listener for orders table
+    const channel = supabase
+      .channel('admin-orders-live')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'orders' 
+      }, async (payload) => {
+        console.log('Real-time order change detected:', payload.eventType);
+        
+        // Always refresh data to ensure consistency
         const res = await fetch(`${ADMIN_API}/orders`);
         if (!res.ok) return;
         const data = await res.json();
+        
         const prevIds = orderIdsRef.current;
         const newOrders = data.filter((o) => !prevIds.has(o.id));
+        
         if (initialSyncDoneRef.current && newOrders.length > 0) {
           showToast(`${newOrders.length} pesanan baru`, 'success');
         }
+        
         setOrders(data);
-      } catch (e) {
-        console.error('Poll orders failed:', e);
-      }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
-    const intervalId = setInterval(poll, POLL_MS);
-    return () => clearInterval(intervalId);
   }, [showToast]);
 
   const updateStatus = async (orderId, newStatus) => {
