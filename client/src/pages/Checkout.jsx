@@ -6,7 +6,7 @@ import {
   CheckCircle2, QrCode, Trash2, Camera, Upload, Image as ImageIcon,
   User, Instagram, MessageCircle, FileText, Calendar
 } from 'lucide-react';
-import { fetchEvents, API_URL } from '../api';
+import { fetchEvents, fetchSettings, API_URL } from '../api';
 import Toast from '../components/Toast';
 import { convertFileToWebp } from '../utils/imageUpload';
 
