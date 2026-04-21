@@ -1399,7 +1399,7 @@ const Admin = () => {
                                           <input 
                                              value={eventForm.location}
                                              onChange={e => setEventForm(prev => ({...prev, location: e.target.value}))}
-                                             placeholder="Contoh: Jakarta"
+                                             placeholder="Contoh: Surabaya"
                                              className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-3 text-sm outline-none focus:border-vibrant-pink/50 transition-colors"
                                           />
                                        </div>
@@ -2055,7 +2055,7 @@ const Admin = () => {
                                     <input 
                                        value={eventForm.location}
                                        onChange={e => setEventForm(prev => ({...prev, location: e.target.value}))}
-                                       placeholder="Contoh: Jakarta"
+                                       placeholder="Contoh: Surabaya"
                                        className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
                                     />
                                  </div>
