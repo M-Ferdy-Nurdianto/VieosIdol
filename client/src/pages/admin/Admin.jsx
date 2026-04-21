@@ -1990,6 +1990,16 @@ const Admin = () => {
                               />
                            </div>
 
+                           <div className="space-y-1.5">
+                              <label className="text-xs font-semibold text-white/40 ml-1">Tema / Subtitle</label>
+                              <input 
+                                 value={eventForm.theme}
+                                 onChange={e => setEventForm(prev => ({...prev, theme: e.target.value}))}
+                                 placeholder="Contoh: Special Performance"
+                                 className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
+                              />
+                           </div>
+
                            <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1.5">
                                  <label className="text-xs font-semibold text-white/40 ml-1">Tanggal</label>
@@ -2008,21 +2018,61 @@ const Admin = () => {
                               </div>
                            </div>
 
-                           <div className="space-y-1.5">
-                              <label className="text-xs font-semibold text-white/40 ml-1">Status</label>
-                              <div className="flex bg-[#0A0A0B] rounded-lg p-1 border border-white/20">
-                                 <button 
-                                    onClick={() => setEventForm(prev => ({...prev, status: 'ongoing'}))}
-                                    className={`flex-1 py-2 rounded text-xs font-bold uppercase tracking-wider transition-colors ${eventForm.status === 'ongoing' ? 'bg-green-600 text-white' : 'text-white/40 hover:text-white'}`}
-                                 >
-                                    Berjalan
-                                 </button>
-                                 <button 
-                                    onClick={() => setEventForm(prev => ({...prev, status: 'done'}))}
-                                    className={`flex-1 py-2 rounded text-xs font-bold uppercase tracking-wider transition-colors ${eventForm.status === 'done' ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white'}`}
-                                 >
-                                    Selesai
-                                 </button>
+                           <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                 <label className="text-xs font-semibold text-white/40 ml-1">Waktu</label>
+                                 <input 
+                                    value={eventForm.time}
+                                    onChange={e => setEventForm(prev => ({...prev, time: e.target.value}))}
+                                    placeholder="Contoh: 19:00 WIB"
+                                    className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
+                                 />
+                              </div>
+                              <div className="space-y-1.5">
+                                 <label className="text-xs font-semibold text-white/40 ml-1">Lokasi</label>
+                                 <input 
+                                    value={eventForm.location}
+                                    onChange={e => setEventForm(prev => ({...prev, location: e.target.value}))}
+                                    placeholder="Contoh: Jakarta"
+                                    className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
+                                 />
+                              </div>
+                           </div>
+
+                           <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                 <label className="text-xs font-semibold text-white/40 ml-1">Kategori Event</label>
+                                 <div className="flex bg-[#0A0A0B] rounded-lg p-1 border border-white/20">
+                                    <button 
+                                       onClick={() => setEventForm(prev => ({...prev, type: 'standard'}))}
+                                       className={`flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${eventForm.type === 'standard' ? 'bg-indigo-600 text-white' : 'text-white/40 hover:text-white'}`}
+                                    >
+                                       Standard
+                                    </button>
+                                    <button 
+                                       onClick={() => setEventForm(prev => ({...prev, type: 'special'}))}
+                                       className={`flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${eventForm.type === 'special' ? 'bg-purple-600 text-white' : 'text-white/40 hover:text-white'}`}
+                                    >
+                                       Special
+                                    </button>
+                                 </div>
+                              </div>
+                              <div className="space-y-1.5">
+                                 <label className="text-xs font-semibold text-white/40 ml-1">Status</label>
+                                 <div className="flex bg-[#0A0A0B] rounded-lg p-1 border border-white/20">
+                                    <button 
+                                       onClick={() => setEventForm(prev => ({...prev, status: 'ongoing'}))}
+                                       className={`flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${eventForm.status === 'ongoing' ? 'bg-green-600 text-white' : 'text-white/40 hover:text-white'}`}
+                                    >
+                                       Ongoing
+                                    </button>
+                                    <button 
+                                       onClick={() => setEventForm(prev => ({...prev, status: 'done'}))}
+                                       className={`flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${eventForm.status === 'done' ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white'}`}
+                                    >
+                                       Done
+                                    </button>
+                                 </div>
                               </div>
                            </div>
                         </div>
