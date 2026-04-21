@@ -1382,27 +1382,29 @@ const Admin = () => {
                                     </div>
                                  </div>
 
-                                 {/* Time & Location - Aligned */}
-                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                       <label className="text-xs font-bold text-vibrant-pink uppercase ml-1">Waktu</label>
-                                       <input 
-                                          value={eventForm.time}
-                                          onChange={e => setEventForm(prev => ({...prev, time: e.target.value}))}
-                                          placeholder="Contoh: 19:00 WIB"
-                                          className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-3 text-sm outline-none focus:border-vibrant-pink/50 transition-colors"
-                                       />
+                                 {/* Time & Location - Aligned (Only for Standard) */}
+                                 {eventForm.type === 'standard' && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                       <div className="space-y-2">
+                                          <label className="text-xs font-bold text-vibrant-pink uppercase ml-1">Waktu</label>
+                                          <input 
+                                             value={eventForm.time}
+                                             onChange={e => setEventForm(prev => ({...prev, time: e.target.value}))}
+                                             placeholder="Contoh: 19:00 WIB"
+                                             className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-3 text-sm outline-none focus:border-vibrant-pink/50 transition-colors"
+                                          />
+                                       </div>
+                                       <div className="space-y-2">
+                                          <label className="text-xs font-bold text-vibrant-pink uppercase ml-1">Lokasi</label>
+                                          <input 
+                                             value={eventForm.location}
+                                             onChange={e => setEventForm(prev => ({...prev, location: e.target.value}))}
+                                             placeholder="Contoh: Jakarta"
+                                             className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-3 text-sm outline-none focus:border-vibrant-pink/50 transition-colors"
+                                          />
+                                       </div>
                                     </div>
-                                    <div className="space-y-2">
-                                       <label className="text-xs font-bold text-vibrant-pink uppercase ml-1">Lokasi</label>
-                                       <input 
-                                          value={eventForm.location}
-                                          onChange={e => setEventForm(prev => ({...prev, location: e.target.value}))}
-                                          placeholder="Contoh: Jakarta"
-                                          className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-3 text-sm outline-none focus:border-vibrant-pink/50 transition-colors"
-                                       />
-                                    </div>
-                                 </div>
+                                 )}
 
                                  <div className="space-y-2">
                                     <label className="text-xs font-bold text-vibrant-pink uppercase ml-1">Status</label>
@@ -2037,26 +2039,28 @@ const Admin = () => {
                               </div>
                            </div>
 
-                           <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-1.5">
-                                 <label className="text-xs font-semibold text-white/40 ml-1">Waktu</label>
-                                 <input 
-                                    value={eventForm.time}
-                                    onChange={e => setEventForm(prev => ({...prev, time: e.target.value}))}
-                                    placeholder="Contoh: 19:00 WIB"
-                                    className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
-                                 />
+                           {eventForm.type === 'standard' && (
+                              <div className="grid grid-cols-2 gap-4">
+                                 <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-white/40 ml-1">Waktu</label>
+                                    <input 
+                                       value={eventForm.time}
+                                       onChange={e => setEventForm(prev => ({...prev, time: e.target.value}))}
+                                       placeholder="Contoh: 19:00 WIB"
+                                       className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
+                                    />
+                                 </div>
+                                 <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-white/40 ml-1">Lokasi</label>
+                                    <input 
+                                       value={eventForm.location}
+                                       onChange={e => setEventForm(prev => ({...prev, location: e.target.value}))}
+                                       placeholder="Contoh: Jakarta"
+                                       className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
+                                    />
+                                 </div>
                               </div>
-                              <div className="space-y-1.5">
-                                 <label className="text-xs font-semibold text-white/40 ml-1">Lokasi</label>
-                                 <input 
-                                    value={eventForm.location}
-                                    onChange={e => setEventForm(prev => ({...prev, location: e.target.value}))}
-                                    placeholder="Contoh: Jakarta"
-                                    className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
-                                 />
-                              </div>
-                           </div>
+                           )}
 
                            <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1.5">
