@@ -1353,6 +1353,16 @@ const Admin = () => {
                                     />
                                  </div>
 
+                                 <div className="space-y-2">
+                                    <label className="text-xs font-bold text-vibrant-pink uppercase ml-1">Tema / Subtitle</label>
+                                    <input 
+                                       value={eventForm.theme}
+                                       onChange={e => setEventForm(prev => ({...prev, theme: e.target.value}))}
+                                       placeholder="Contoh: Special Edition"
+                                       className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-3 text-sm outline-none focus:border-vibrant-pink/50 transition-colors"
+                                    />
+                                 </div>
+
                                  {/* Date & PO Deadline - Aligned */}
                                  <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
@@ -1368,6 +1378,28 @@ const Admin = () => {
                                           value={eventForm.po_deadline}
                                           onChange={val => setEventForm(prev => ({...prev, po_deadline: val}))}
                                           align="right"
+                                       />
+                                    </div>
+                                 </div>
+
+                                 {/* Time & Location - Aligned */}
+                                 <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                       <label className="text-xs font-bold text-vibrant-pink uppercase ml-1">Waktu</label>
+                                       <input 
+                                          value={eventForm.time}
+                                          onChange={e => setEventForm(prev => ({...prev, time: e.target.value}))}
+                                          placeholder="Contoh: 19:00 WIB"
+                                          className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-3 text-sm outline-none focus:border-vibrant-pink/50 transition-colors"
+                                       />
+                                    </div>
+                                    <div className="space-y-2">
+                                       <label className="text-xs font-bold text-vibrant-pink uppercase ml-1">Lokasi</label>
+                                       <input 
+                                          value={eventForm.location}
+                                          onChange={e => setEventForm(prev => ({...prev, location: e.target.value}))}
+                                          placeholder="Contoh: Jakarta"
+                                          className="w-full bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-3 text-sm outline-none focus:border-vibrant-pink/50 transition-colors"
                                        />
                                     </div>
                                  </div>
@@ -1391,19 +1423,6 @@ const Admin = () => {
                                  </div>
 
                               </div>
-
-                              {/* Theme (Special Only) */}
-                              {eventForm.type === 'special' && (
-                                 <div className="space-y-2 pt-2">
-                                    <label className="text-xs font-bold text-purple-400 uppercase ml-1">Tema / Konsep</label>
-                                    <input 
-                                       value={eventForm.theme}
-                                       onChange={e => setEventForm(prev => ({...prev, theme: e.target.value}))}
-                                       placeholder="Contoh: Valentine Special Edition"
-                                       className="w-full bg-[#0A0A0B] border border-purple-500/20 rounded-lg px-3 py-3 text-sm outline-none focus:border-purple-500/50 transition-colors text-purple-300 placeholder:text-purple-400/20"
-                                    />
-                                 </div>
-                              )}
 
                               {/* Special Event Pricing (Left Column) */}
                               {eventForm.type === 'special' && (
