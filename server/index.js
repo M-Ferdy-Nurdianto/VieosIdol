@@ -30,8 +30,14 @@ const isAllowedVercelPreviewOrigin = (origin) => {
 
 // Security Middleware
 app.use(helmet({
-    // Some browsers/extensions warn on experimental Permissions-Policy directives.
-    permissionsPolicy: false
+    // Explicitly define a clean policy to prevent browser warnings about unrecognized experimental features.
+    permissionsPolicy: {
+        features: {
+            camera: ["'none'"],
+            microphone: ["'none'"],
+            geolocation: ["'none'"],
+        },
+    },
 }));
 app.use(cors({
     origin: (origin, callback) => {
