@@ -220,7 +220,8 @@ const MemberDetail = () => {
                                     initial="initial"
                                     animate="animate"
                                     exit="exit"
-                                    className="h-full overflow-y-auto flex flex-col p-4 sm:p-5 lg:p-8 pt-5 lg:pt-8 pb-5 custom-scrollbar"
+                                    className="h-full overflow-y-auto flex flex-col p-4 sm:p-5 lg:p-8 pt-5 lg:pt-8 pb-5 custom-scrollbar min-h-[500px]"
+
                                 >
                                     <div className="flex flex-col items-start mb-3 md:mb-2 shrink-0">
                                         <div className="flex items-center gap-3 mb-2">
@@ -364,9 +365,15 @@ const MemberDetail = () => {
                                                     </div>
                                                     <div>
                                                         <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-0.5">Social Media</span>
-                                                        <span className="text-xs sm:text-sm font-bold text-[var(--text-main)] underline decoration-vibrant-pink/30 hover:text-vibrant-pink transition-colors cursor-pointer">
-                                                            {selectedMember.instagram || '@vieos_official'}
-                                                        </span>
+                                                        <a 
+                                                            href={`https://instagram.com/${(selectedMember.instagram || 'vieos.idol').replace(/^@/, '')}`} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs sm:text-sm font-bold text-[var(--text-main)] underline decoration-vibrant-pink/30 hover:text-vibrant-pink transition-colors cursor-pointer"
+                                                        >
+                                                            {selectedMember.instagram || '@vieos.idol'}
+                                                        </a>
+
                                                     </div>
                                                 </div>
                                             </div>

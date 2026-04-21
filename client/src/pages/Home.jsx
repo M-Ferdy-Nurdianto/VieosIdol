@@ -5,9 +5,11 @@ import { ArrowRight, MapPin, Clock, Instagram, Youtube, Cherry, Star, MessageCir
 import HeroCarousel from '../components/HeroCarousel';
 import Footer from '../components/Footer';
 import SkeletonImage from '../components/SkeletonImage';
+import EventSkeleton from '../components/EventSkeleton';
 
 const Home = () => {
   const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -17,10 +19,13 @@ const Home = () => {
         setEvents(data.filter(e => e.status !== 'done'));
       } catch (err) {
         console.error("Failed to load events:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
     loadData();
   }, []);
+
 
   return (
     <div className="relative min-h-screen">
@@ -55,8 +60,10 @@ const Home = () => {
                            <SkeletonImage
                               src="/photo/about/about-hero.webp"
                               alt="VIEOS Live performance"
-                              wrapperClassName="w-full"
-                              className="w-full aspect-[4/5] object-cover"
+                              wrapperClassName="w-full aspect-[4/5]"
+                              className="w-full h-full object-cover bg-black/5"
+                              skeletonClassName="aspect-[4/5]"
+
                            />
                   <div className="mt-6 handwritten text-vibrant-pink text-2xl md:text-4xl text-center">VIEOS</div>
                </motion.div>
@@ -72,8 +79,10 @@ const Home = () => {
                            <SkeletonImage
                               src="/photo/hero/hero 2.png"
                               alt="Stage lights"
-                              wrapperClassName="w-full"
-                              className="w-full aspect-square object-cover"
+                              wrapperClassName="w-full aspect-square"
+                              className="w-full h-full object-cover bg-black/5"
+                              skeletonClassName="aspect-square"
+
                            />
                </motion.div>
 
@@ -168,48 +177,63 @@ const Home = () => {
           </div>
 
           <div className="space-y-6">
-            {events.map((event, i) => (
-              <motion.div
-                key={i}
-                initial={{ y: 20, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="group cursor-pointer relative"
-              >
-                <div className="p-10 rounded-[2.5rem] shadow-sm border border-main group-hover:shadow-xl group-hover:-translate-y-1 transition-all" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
-                  <div className="flex flex-col md:flex-row items-center gap-12">
-                    <div className="text-center md:text-left min-w-full md:min-w-[120px]">
-                      <div className="text-3xl md:text-4xl font-black text-vibrant-pink tracking-tighter">
-                        {event.event_date}
-                      </div>
-                      <div className="text-[9px] md:text-[10px] font-black uppercase tracking-widest mt-1" style={{ color: 'var(--text-muted)' }}>
-                        SAVE THE DATE
-                      </div>
-                    </div>
-
-                    <div className="flex-grow">
-                      <h3 className="text-3xl font-black mb-4 group-hover:text-vibrant-pink transition-colors" style={{ color: 'var(--text-main)' }}>
-                        {event.name}
-                      </h3>
-                      <div className="flex flex-wrap justify-center md:justify-start gap-8 text-sm font-bold" style={{ color: 'var(--text-muted)' }}>
-                        <div className="flex items-center gap-2">
-                           <MapPin size={16} /> <span>{event.location}</span>
+            {isLoading ? (
+              <EventSkeleton />
+            ) : events.length > 0 ? (
+              events.map((event, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ y: 20, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="group cursor-pointer relative"
+                >
+                  <div className="p-10 rounded-[2.5rem] shadow-sm border border-main group-hover:shadow-xl group-hover:-translate-y-1 transition-all" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
+                    <div className="flex flex-col md:flex-row items-center gap-12">
+                      <div className="text-center md:text-left min-w-full md:min-w-[120px]">
+                        <div className="text-3xl md:text-4xl font-black text-vibrant-pink tracking-tighter">
+                          {event.event_date}
                         </div>
-                        <div className="flex items-center gap-2">
-                           <Clock size={16} /> <span>{event.event_time}</span>
+                        <div className="text-[9px] md:text-[10px] font-black uppercase tracking-widest mt-1" style={{ color: 'var(--text-muted)' }}>
+                          SAVE THE DATE
                         </div>
                       </div>
-                    </div>
 
-                    <a href="/cheki" className="vibrant-button py-4 px-10 text-[10px] whitespace-nowrap">
-                      AMANKAN TIKETMU!
-                    </a>
+                      <div className="flex-grow">
+                        <h3 className="text-3xl font-black mb-4 group-hover:text-vibrant-pink transition-colors" style={{ color: 'var(--text-main)' }}>
+                          {event.name}
+                        </h3>
+                        <div className="flex flex-wrap justify-center md:justify-start gap-8 text-sm font-bold" style={{ color: 'var(--text-muted)' }}>
+                          <div className="flex items-center gap-2">
+                             <MapPin size={16} /> <span>{event.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                             <Clock size={16} /> <span>{event.event_time}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <a href="/cheki" className="vibrant-button py-4 px-10 text-[10px] whitespace-nowrap">
+                        AMANKAN TIKETMU!
+                      </a>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))
+            ) : (
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    className="text-center py-20 bg-[var(--bg-subtle)] rounded-[2.5rem] border border-[var(--border-main)] border-dashed"
+                >
+                    <p className="text-[var(--text-muted)] font-black uppercase tracking-[0.3em] mb-2">Belum ada event mendatang</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Pantau terus sosial media kami untuk update terbaru!</p>
+                </motion.div>
+            )}
           </div>
+
+
         </div>
       </section>
 

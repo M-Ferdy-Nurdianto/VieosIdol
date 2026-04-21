@@ -352,10 +352,11 @@ const Checkout = () => {
                          />
                       </div>
                    </div>
-                   <div className="space-y-1 relative group/select">
-                      <label className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-black/40 mb-1.5 block leading-none flex items-center gap-1">
+                    <div className="space-y-1 relative group/select">
+                      <label className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-black/40 mb-1.5 leading-none flex items-center gap-1">
                          <Calendar size={9} /> Pilih Event
                       </label>
+
                       <div className="relative">
                          <div 
                            onClick={() => setFormData(prev => ({ ...prev, isDropdownOpen: !prev.isDropdownOpen }))}
