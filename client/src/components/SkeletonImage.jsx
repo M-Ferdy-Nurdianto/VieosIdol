@@ -9,6 +9,8 @@ const SkeletonImage = ({
     skeletonClassName = '',
     loading = 'lazy',
     decoding = 'async',
+    width,
+    height,
     onLoad,
     onError,
     ...rest
@@ -70,6 +72,8 @@ const SkeletonImage = ({
                 ref={imgRef}
                 src={currentSrc}
                 alt={alt}
+                width={width}
+                height={height}
                 loading={loading}
                 decoding={decoding}
                 onLoad={handleLoad}
