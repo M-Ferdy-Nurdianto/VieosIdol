@@ -34,7 +34,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-gray-600">
                 <Phone size={12} className="text-vibrant-pink" />
-                <span className="text-xs font-bold">0812-3692-2067</span>
+                <span className="text-xs font-bold">081236922067 (Pio)</span>
               </li>
               <li className="flex items-center gap-3 text-gray-600">
                 <MapPin size={12} className="text-vibrant-pink" />
