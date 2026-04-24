@@ -291,7 +291,10 @@ exports.getAllOrders = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        let { status } = req.body;
+
+        // Map UI 'done' to database 'verified' enum
+        if (status === 'done') status = 'verified';
 
         const { data, error } = await supabase
             .from('orders')
@@ -589,7 +592,7 @@ exports.exportToExcel = async (req, res) => {
         }
 
         // Get orders
-        let query = supabase.from('orders').select('*').neq('status', 'pending');
+        let query = supabase.from('orders').select('*');
         if (eventId !== 'all') query = query.eq('event_id', eventId);
         const { data: eventOrdersRaw, error } = await query;
         if (error) throw error;
@@ -729,16 +732,28 @@ exports.exportToExcel = async (req, res) => {
         memberHeaderCell.alignment = { vertical: 'middle', horizontal: 'left' };
 
         const memberStats = {};
+        const normalizeMemberName = (name) => {
+            const n = name.trim();
+            const lower = n.toLowerCase();
+            if (lower === 'group cheki' || lower === 'group') return 'GROUP';
+            if (lower === 'abell') return 'Abel';
+            return n;
+        };
+
         for (const o of eventOrders) {
             const members = (o.member_id || '').split(', ').map(s => s.trim()).filter(Boolean);
             for (const mStr of members) {
                 const parts = mStr.split(' x');
-                const name = (parts[0] || '').trim();
-                if (!name) continue;
+                const rawName = (parts[0] || '').trim();
+                if (!rawName) continue;
+                
+                const name = normalizeMemberName(rawName);
                 const qty = parts[1] ? parseInt(parts[1], 10) : o.qty;
+                
                 if (!memberStats[name]) memberStats[name] = { qty: 0, revenue: 0 };
                 memberStats[name].qty += qty;
-                const price = await calculateInternalPrice(o.event_id, o.cheki_type, name);
+                
+                const price = await calculateInternalPrice(o.event_id, o.cheki_type, rawName);
                 memberStats[name].revenue += (price * qty);
             }
         }
@@ -917,8 +932,8 @@ exports.exportToPdf = async (req, res) => {
         // Analytics
         const totalSales = eventOrders.reduce((acc, o) => acc + o.total_price, 0);
         const totalQty = eventOrders.reduce((acc, o) => acc + o.qty, 0);
-        const otsCount = eventOrders.filter(o => o.mode === 'ots').length;
-        const poCount = eventOrders.filter(o => o.mode !== 'ots').length;
+        const readyToCollect = eventOrders.filter(o => o.status === 'paid').length;
+        const doneCount = eventOrders.filter(o => o.status === 'verified' || o.status === 'done').length;
 
         doc.setFontSize(12);
         doc.setTextColor(0);
@@ -940,10 +955,10 @@ exports.exportToPdf = async (req, res) => {
             doc.text(value, x + 5, y + 18);
         };
 
-        drawCard(14, 68, "KEUNTUNGAN", `Rp ${totalSales.toLocaleString()}`, pink);
-        drawCard(63, 68, "TOTAL POLAROID", `${totalQty} units`, blue);
-        drawCard(112, 68, "OTS ORDERS", `${otsCount} orders`, blue);
-        drawCard(161, 68, "PO ORDERS", `${poCount} orders`, pink);
+        drawCard(14, 68, "REVENUE (PAID)", `Rp ${totalSales.toLocaleString()}`, pink);
+        drawCard(63, 68, "PAID & READY", `${readyToCollect} orders`, blue);
+        drawCard(112, 68, "COMPLETED", `${doneCount} orders`, blue);
+        drawCard(161, 68, "TOTAL ITEMS", `${totalQty} units`, pink);
 
         // Member Performance
         doc.setFontSize(12);
@@ -951,16 +966,29 @@ exports.exportToPdf = async (req, res) => {
         doc.text("MEMBER PERFORMANCE (A-Z)", 14, 110);
 
         const memberStats = {};
+        const normalizeMemberName = (name) => {
+            const n = name.trim();
+            const lower = n.toLowerCase();
+            if (lower === 'group cheki' || lower === 'group') return 'GROUP';
+            if (lower === 'abell') return 'Abel';
+            // Return original if no mapping found, but capitalized consistently if desired
+            return n;
+        };
+
         for (const o of eventOrders) {
             const membersList = (o.member_id || '').split(', ').map(s => s.trim()).filter(Boolean);
             for (const mStr of membersList) {
                 const parts = mStr.split(' x');
-                const name = (parts[0] || '').trim();
-                if (!name) continue;
+                const rawName = (parts[0] || '').trim();
+                if (!rawName) continue;
+                
+                const name = normalizeMemberName(rawName);
                 const qty = parts[1] ? parseInt(parts[1], 10) : o.qty;
+                
                 if (!memberStats[name]) memberStats[name] = { qty: 0, revenue: 0 };
                 memberStats[name].qty += qty;
-                const price = await calculateInternalPrice(o.event_id, o.cheki_type, name);
+                
+                const price = await calculateInternalPrice(o.event_id, o.cheki_type, rawName);
                 memberStats[name].revenue += (price * qty);
             }
         }

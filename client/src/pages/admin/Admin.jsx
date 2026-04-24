@@ -157,10 +157,16 @@ const Admin = () => {
     group_enabled: true
   });
 
-  const [filter, setFilter] = useState({
-    status: 'all',
-    event: 'all', 
-    search: ''
+  const [filter, setFilter] = useState(() => {
+    const saved = localStorage.getItem('admin_filter');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return { status: 'all', event: 'all', search: '' };
+      }
+    }
+    return { status: 'all', event: 'all', search: '' };
   });
 
   const [eventModal, setEventModal] = useState({
@@ -233,11 +239,22 @@ const Admin = () => {
           ? ongoingEvents[ongoingEvents.length - 1].id 
           : evData[evData.length - 1].id;
 
-        if (!otsForm.event_id) {
-          setOTSForm(prev => ({ ...prev, event_id: defaultEventId }));
+        // Check if current filter event exists in evData
+        const filterEventExists = filter.event === 'all' || evData.some(ev => String(ev.id) === String(filter.event));
+        
+        const finalEventId = filterEventExists && filter.event !== 'all' ? filter.event : defaultEventId;
+
+        if (!otsForm.event_id || !filterEventExists) {
+          setOTSForm(prev => ({ ...prev, event_id: finalEventId }));
         }
-        // Set filter to the default event instead of 'all'
-        setFilter(prev => ({ ...prev, event: defaultEventId }));
+
+        // Only overwrite filter if it was 'all' or the event no longer exists
+        if (filter.event === 'all' || !filterEventExists) {
+           setFilter(prev => ({ ...prev, event: finalEventId }));
+        } else {
+           // Ensure otsForm is in sync with the persistent filter
+           setOTSForm(prev => ({ ...prev, event_id: filter.event }));
+        }
       }
     } catch (err) {
       console.error("Fetch data failed:", err);
@@ -260,6 +277,11 @@ const Admin = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Persist filter changes
+  useEffect(() => {
+    localStorage.setItem('admin_filter', JSON.stringify(filter));
+  }, [filter]);
 
   useEffect(() => {
     orderIdsRef.current = new Set(orders.map((o) => o.id));
@@ -555,8 +577,8 @@ const Admin = () => {
   const allMergedOrders = [...orders].sort(
     (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
   );
-  const otsOrders = orders.filter(o => o.mode === 'ots').reverse();
-  const onlineOrders = orders.filter(o => o.mode !== 'ots').reverse();
+  const otsOrders = orders.filter(o => o.mode === 'ots');
+  const onlineOrders = orders.filter(o => o.mode !== 'ots');
 
   const filterList = (list) => list.filter(order => {
     const matchesStatus = filter.status === 'all' || order.status === filter.status;
@@ -692,7 +714,12 @@ const Admin = () => {
                    <div className="flex items-center gap-4">
                       <VIEOSSelect 
                          value={filter.event}
-                         onChange={val => setFilter(prev => ({...prev, event: val}))}
+                         onChange={val => {
+                           setFilter(prev => ({...prev, event: val}));
+                           if (val !== 'all') {
+                             setOTSForm(prev => ({ ...prev, event_id: val }));
+                           }
+                         }}
                          placeholder="Select Event"
                          className="min-w-[200px]"
                          options={[
@@ -756,19 +783,34 @@ const Admin = () => {
                         <div className="space-y-4">
                           <div className="space-y-2">
                              <label className="text-xs uppercase text-white/40 font-semibold tracking-wider">Informasi Pelanggan</label>
-                             <div className="flex gap-2">
-                               <input 
-                                 placeholder="Nama Panggilan" 
-                                 value={otsForm.nickname}
-                                 onChange={e => setOTSForm(prev => ({...prev, nickname: e.target.value}))}
-                                 className="flex-1 bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
-                               />
-                               <input 
-                                 placeholder="Kontak (Opsional)" 
-                                 value={otsForm.contact}
-                                 onChange={e => setOTSForm(prev => ({...prev, contact: e.target.value}))}
-                                 className="w-1/3 bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
-                               />
+                             <div className="flex flex-col gap-2">
+                                <VIEOSSelect 
+                                  value={otsForm.event_id}
+                                  onChange={val => {
+                                    setOTSForm(prev => ({...prev, event_id: val}));
+                                    setFilter(prev => ({...prev, event: val}));
+                                  }}
+                                  placeholder="Pilih Event Booth"
+                                  className="w-full"
+                                  options={events.map(ev => {
+                                    const { badge, badgeKind } = eventOptionBadge(ev);
+                                    return { value: ev.id, label: ev.name, badge, badgeKind };
+                                  })}
+                                />
+                                <div className="flex gap-2">
+                                  <input 
+                                    placeholder="Nama Panggilan" 
+                                    value={otsForm.nickname}
+                                    onChange={e => setOTSForm(prev => ({...prev, nickname: e.target.value}))}
+                                    className="flex-1 bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
+                                  />
+                                  <input 
+                                    placeholder="Kontak (Opsional)" 
+                                    value={otsForm.contact}
+                                    onChange={e => setOTSForm(prev => ({...prev, contact: e.target.value}))}
+                                    className="w-1/3 bg-[#0A0A0B] border border-white/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-white/50"
+                                  />
+                                </div>
                              </div>
                           </div>
   
@@ -871,9 +913,9 @@ const Admin = () => {
                          </div>
                       </div>
 
-                       <div className="bg-[#0A0A0B] rounded-xl overflow-hidden border border-white/10">
+                       <div className="bg-[#0A0A0B] rounded-xl border border-white/10 max-h-[500px] overflow-y-auto custom-scrollbar">
                          <table className="w-full text-left">
-                           <thead>
+                           <thead className="sticky top-0 z-20 bg-[#0A0A0B] shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
                              <tr className="bg-white/5 border-b border-white/5">
                                <th className="p-3 text-xs font-bold uppercase text-white/40">Nama</th>
                                <th className="p-3 text-xs font-bold uppercase text-white/40">Item</th>
@@ -883,7 +925,7 @@ const Admin = () => {
                              </tr>
                            </thead>
                            <tbody className="divide-y divide-white/5">
-                             {filterList(otsOrders).slice(0, 5).map((order) => (
+                             {filterList(otsOrders).map((order) => (
                                <tr key={order.id} className="group hover:bg-white/5 transition-colors">
                                  <td className="p-3 text-xs font-semibold text-white/80">{order.nickname}</td>
                                  <td className="p-3 text-[10px] text-vibrant-pink font-bold uppercase tracking-tight">
@@ -905,7 +947,7 @@ const Admin = () => {
                                           className="text-xs min-w-[7rem]"
                                           options={[
                                             { value: 'paid', label: 'Sudah bayar' },
-                                            { value: 'done', label: 'Selesai' }
+                                            { value: 'verified', label: 'Selesai' }
                                           ]}
                                        />
                                        <button 
@@ -999,7 +1041,7 @@ const Admin = () => {
                                            options={[
                                              { value: 'pending', label: 'Belum dicek' },
                                              { value: 'paid', label: 'Sudah bayar' },
-                                             { value: 'done', label: 'Selesai' }
+                                             { value: 'verified', label: 'Selesai' }
                                            ]}
                                         />
                                      </td>
@@ -1103,7 +1145,7 @@ const Admin = () => {
                                            options={[
                                              { value: 'pending', label: 'Belum dicek' },
                                              { value: 'paid', label: 'Sudah bayar' },
-                                             { value: 'done', label: 'Selesai' }
+                                             { value: 'verified', label: 'Selesai' }
                                            ]}
                                         />
                                       </td>
@@ -1161,7 +1203,7 @@ const Admin = () => {
                                            options={[
                                              { value: 'pending', label: 'Belum dicek' },
                                              { value: 'paid', label: 'Sudah bayar' },
-                                             { value: 'done', label: 'Selesai' }
+                                             { value: 'verified', label: 'Selesai' }
                                            ]}
                                         />
                                       </td>
@@ -2333,7 +2375,7 @@ const Admin = () => {
                          <button
                            disabled={statusUpdatingId === selectedOrder.id}
                            onClick={() => {
-                              updateStatus(selectedOrder.id, 'done');
+                              updateStatus(selectedOrder.id, 'verified');
                               setSelectedOrder(null);
                            }}
                            className={`flex-1 py-2 text-black rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${statusUpdatingId === selectedOrder.id ? 'bg-gray-400 opacity-50 cursor-not-allowed' : 'bg-white hover:bg-gray-200'}`}
