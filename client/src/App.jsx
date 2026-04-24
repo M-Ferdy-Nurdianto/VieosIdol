@@ -4,14 +4,31 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
 import AppAssetLoader from './components/AppAssetLoader';
 
-const Home = lazy(() => import('./pages/Home'));
-const Members = lazy(() => import('./pages/Members'));
-const MemberDetail = lazy(() => import('./pages/MemberDetail'));
-const Music = lazy(() => import('./pages/Music'));
-const Cheki = lazy(() => import('./pages/Cheki'));
-const Checkout = lazy(() => import('./pages/Checkout'));
-const Admin = lazy(() => import('./pages/admin/Admin'));
-const Login = lazy(() => import('./pages/Login'));
+const lazyRetry = (componentImport) => {
+  return lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      console.error("Module loading failed, refreshing page...", error);
+      // Check if we already tried to reload (to avoid infinite loops)
+      const hasReloaded = sessionStorage.getItem('page-reloaded-on-error');
+      if (!hasReloaded) {
+        sessionStorage.setItem('page-reloaded-on-error', 'true');
+        window.location.reload();
+      }
+      throw error;
+    }
+  });
+};
+
+const Home = lazyRetry(() => import('./pages/Home'));
+const Members = lazyRetry(() => import('./pages/Members'));
+const MemberDetail = lazyRetry(() => import('./pages/MemberDetail'));
+const Music = lazyRetry(() => import('./pages/Music'));
+const Cheki = lazyRetry(() => import('./pages/Cheki'));
+const Checkout = lazyRetry(() => import('./pages/Checkout'));
+const Admin = lazyRetry(() => import('./pages/admin/Admin'));
+const Login = lazyRetry(() => import('./pages/Login'));
 
 const RouteLoader = () => (
   <div className="min-h-[45vh] flex items-center justify-center">
