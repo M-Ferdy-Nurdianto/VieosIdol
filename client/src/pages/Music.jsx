@@ -23,8 +23,8 @@ const Music = () => {
             {!isMobile && <div className="grain-overlay" />}
 
             {/* Global Glows for consistency */}
-            <div className="absolute top-[5%] right-[-10%] w-[260px] h-[260px] md:w-[600px] md:h-[600px] bg-vibrant-pink/10 rounded-full blur-[90px] md:blur-[160px] -z-0 pointer-events-none" />
-            <div className="absolute bottom-[10%] left-[-15%] w-[280px] h-[280px] md:w-[800px] md:h-[800px] bg-vibrant-blue/10 rounded-full blur-[90px] md:blur-[140px] -z-0 pointer-events-none" />
+            <div className="absolute top-[5%] right-[-10%] w-[260px] h-[260px] md:w-[600px] md:h-[600px] bg-vibrant-pink/10 rounded-full blur-[90px] md:blur-[160px] -z-0 pointer-events-none" style={{ contain: 'strict', transform: 'translateZ(0)' }} />
+            <div className="absolute bottom-[10%] left-[-15%] w-[280px] h-[280px] md:w-[800px] md:h-[800px] bg-vibrant-blue/10 rounded-full blur-[90px] md:blur-[140px] -z-0 pointer-events-none" style={{ contain: 'strict', transform: 'translateZ(0)' }} />
 
             <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 relative z-10 overflow-x-clip">
                 {/* Unified Header */}

@@ -49,7 +49,7 @@ const Home = () => {
       <section className="py-16 md:py-48 relative paper-texture transition-colors duration-500 bg-transparent">
         {/* Organic Doodles & Background Elements */}
         <div className="absolute top-20 right-4 md:right-20 text-[6rem] md:text-[15rem] font-brand select-none rotate-12 pointer-events-none opacity-[0.03]" style={{ color: 'var(--text-main)' }}>VIEOS</div>
-        <div className="absolute top-1/2 left-[-20%] md:left-[-10%] w-[300px] md:w-[800px] h-[300px] md:h-[800px] bg-vibrant-pink/15 rounded-full blur-[80px] md:blur-[160px] -z-0 pointer-events-none" />
+        <div className="absolute top-1/2 left-[-20%] md:left-[-10%] w-[300px] md:w-[800px] h-[300px] md:h-[800px] bg-vibrant-pink/15 rounded-full blur-[80px] md:blur-[160px] -z-0 pointer-events-none" style={{ contain: 'strict', transform: 'translateZ(0)' }} />
         
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="flex flex-col lg:flex-row gap-12 lg:gap-32 items-center">
@@ -272,8 +272,8 @@ const Home = () => {
          <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="glass-effect p-8 sm:p-12 md:p-20 rounded-[2.5rem] md:rounded-[4rem] relative overflow-hidden group border-main shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)]" style={{ backgroundColor: 'var(--bg-subtle)' }}>
                {/* Advanced Decorative Background Orbs */}
-               <div className="absolute -top-24 -right-24 w-96 h-96 bg-vibrant-pink/15 rounded-full blur-[120px] -z-10 group-hover:scale-125 transition-all duration-1000 pointer-events-none" />
-               <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-vibrant-blue/15 rounded-full blur-[120px] -z-10 group-hover:scale-125 transition-all duration-1000 pointer-events-none" />
+               <div className="absolute -top-24 -right-24 w-96 h-96 bg-vibrant-pink/15 rounded-full blur-[120px] -z-10 group-hover:scale-125 transition-all duration-1000 pointer-events-none" style={{ contain: 'strict', transform: 'translateZ(0)' }} />
+               <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-vibrant-blue/15 rounded-full blur-[120px] -z-10 group-hover:scale-125 transition-all duration-1000 pointer-events-none" style={{ contain: 'strict', transform: 'translateZ(0)' }} />
                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/ashen-paper.png')] opacity-[0.03] pointer-events-none" />
                
                <div className="flex flex-col lg:grid lg:grid-cols-2 gap-12 md:gap-20 items-center relative z-10">
@@ -302,7 +302,7 @@ const Home = () => {
                      </p>
                      
                      <div className="flex flex-col sm:flex-row flex-wrap gap-6 items-center justify-center lg:justify-start">
-                        <a href="https://wa.me/6281234567890" target="_blank" className="w-full sm:w-auto vibrant-button py-6 px-12 text-sm relative group/btn shadow-[0_20px_40px_-10px_rgba(255,27,141,0.4)] overflow-hidden">
+                        <a href="https://wa.me/6281236922067" target="_blank" className="w-full sm:w-auto vibrant-button py-6 px-12 text-sm relative group/btn shadow-[0_20px_40px_-10px_rgba(255,27,141,0.4)] overflow-hidden">
                            <div className="absolute inset-0 bg-white/10 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
                            <span className="relative z-10 flex items-center gap-3">
                               HUBUNGI ADMIN (CP)

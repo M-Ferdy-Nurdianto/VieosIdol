@@ -165,8 +165,8 @@ const MemberDetail = () => {
             <div className="grain-overlay" />
             
             {/* Global Glows for consistency */}
-            <div className="absolute top-[10%] left-[-10%] w-[400px] md:w-[800px] h-[400px] md:h-[800px] bg-vibrant-pink/20 dark:bg-vibrant-pink/10 rounded-full blur-[100px] md:blur-[160px] -z-0 pointer-events-none" />
-            <div className="absolute bottom-[10%] right-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-vibrant-blue/20 dark:bg-vibrant-blue/10 rounded-full blur-[100px] md:blur-[140px] -z-0 pointer-events-none" />
+            <div className="absolute top-[10%] left-[-10%] w-[400px] md:w-[800px] h-[400px] md:h-[800px] bg-vibrant-pink/20 dark:bg-vibrant-pink/10 rounded-full blur-[100px] md:blur-[160px] -z-0 pointer-events-none" style={{ contain: 'strict', transform: 'translateZ(0)' }} />
+            <div className="absolute bottom-[10%] right-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-vibrant-blue/20 dark:bg-vibrant-blue/10 rounded-full blur-[100px] md:blur-[140px] -z-0 pointer-events-none" style={{ contain: 'strict', transform: 'translateZ(0)' }} />
 
             <div className="w-full flex-1 flex justify-center p-3 md:p-6 lg:py-6 lg:px-8 relative z-10 transition-all min-h-0">
                 <div className="w-full max-w-7xl h-full relative">

@@ -87,8 +87,8 @@ const Cheki = () => {
       <div className="grain-overlay" />
 
       {/* Global Glows for consistency */}
-      <div className="absolute top-[20%] left-[-25%] md:left-[-15%] w-[300px] md:w-[800px] h-[300px] md:h-[800px] bg-vibrant-pink/10 rounded-full blur-[80px] md:blur-[160px] -z-0 pointer-events-none" />
-      <div className="absolute bottom-[30%] right-[-10%] md:right-[-5%] w-[300px] md:w-[700px] h-[300px] md:h-[700px] bg-vibrant-blue/10 rounded-full blur-[80px] md:blur-[140px] -z-0 pointer-events-none" />
+      <div className="absolute top-[20%] left-[-25%] md:left-[-15%] w-[300px] md:w-[800px] h-[300px] md:h-[800px] bg-vibrant-pink/10 rounded-full blur-[80px] md:blur-[160px] -z-0 pointer-events-none" style={{ contain: 'strict', transform: 'translateZ(0)' }} />
+      <div className="absolute bottom-[30%] right-[-10%] md:right-[-5%] w-[300px] md:w-[700px] h-[300px] md:h-[700px] bg-vibrant-blue/10 rounded-full blur-[80px] md:blur-[140px] -z-0 pointer-events-none" style={{ contain: 'strict', transform: 'translateZ(0)' }} />
 
       <div className="max-w-7xl mx-auto relative z-10">
         
