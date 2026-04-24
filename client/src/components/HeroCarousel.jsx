@@ -101,10 +101,13 @@ const HeroCarousel = () => {
               ref={imgRef}
               src={slides[current].image} 
               alt={slides[current].title}
+              width={1920}
+              height={1080}
                initial={{ opacity: 0 }}
                animate={{ opacity: isSlideLoaded ? 1 : 0 }}
                transition={{ opacity: { duration: isLowPowerMode ? 0.6 : 1, ease: [0.22, 1, 0.36, 1] } }}
               loading="eager"
+              fetchpriority="high"
               decoding="async"
               className="absolute inset-0 w-full h-full object-cover"
               onLoad={() => setIsSlideLoaded(true)}
@@ -159,11 +162,15 @@ const HeroCarousel = () => {
               data-aos-delay="200"
               style={{ willChange: 'transform, opacity' }}
             >
-              <div className="w-32 h-32 md:w-56 md:h-56 relative z-10 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-6">
+              {/* Explicit w/h prevents CLS (logo size reserved before load) */}
+              <div className="w-32 h-32 md:w-56 md:h-56 relative z-10 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-6" style={{ aspectRatio: '1 / 1' }}>
                 <img 
                   src="/logos/vieos.webp" 
                   alt="VIEOS IDOL Logo" 
+                  width={224}
+                  height={224}
                   loading="eager"
+                  fetchpriority="low"
                   decoding="async"
                   className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(255,105,180,0.5)]"
                   onError={(e) => {
