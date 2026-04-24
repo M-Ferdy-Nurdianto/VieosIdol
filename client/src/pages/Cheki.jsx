@@ -5,7 +5,16 @@ import { fetchMembers, fetchEvents, fetchSettings, API_URL } from '../api';
 import { Plus, Sparkles, LayoutGrid, Users, CheckCircle2, ChevronRight, Tag } from 'lucide-react';
 import Toast from '../components/Toast';
 import SkeletonImage from '../components/SkeletonImage';
-import { getMemberImageSrc, getMemberFallbackImage } from '../utils/memberImages';
+import { getMemberChekiImageSrc, getMemberFallbackImage } from '../utils/memberImages';
+
+const isLightColor = (hex) => {
+    const color = hex || '#FFFFFF';
+    if (color.length < 6) return false;
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    return (r * 0.299 + g * 0.587 + b * 0.114) > 186;
+};
 
 const Cheki = () => {
   const [liveEvents, setLiveEvents] = useState([]);
@@ -120,17 +129,20 @@ const Cheki = () => {
               className="relative w-full max-w-5xl md:aspect-[21/8] group"
             >
               <div className="relative md:absolute md:inset-0 bg-[#1E2132] rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)] md:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] overflow-hidden border border-white/10 flex flex-col md:flex-row items-stretch">
+                  
+                  {/* Background Image - Now covers entire card */}
+                  <div className="absolute inset-0 opacity-60 md:opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-[1.6] md:scale-[1.4] origin-bottom pointer-events-none">
+                    <SkeletonImage
+                      src="/photo/hero/hero.webp"
+                      alt="Group Cheki"
+                      wrapperClassName="absolute inset-0"
+                      className="w-full h-full object-cover object-bottom"
+                    />
+                  </div>
+
                   {/* Left: Visual/Promo Area */}
-                  <div className="relative flex-grow overflow-hidden h-[180px] sm:h-[220px] md:h-auto">
-                      <div className="absolute inset-0 opacity-80 md:opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100">
-                        <SkeletonImage
-                          src="/photo/hero/hero.png"
-                          alt="Group Cheki"
-                          wrapperClassName="absolute inset-0"
-                          className="w-full h-full object-cover object-top"
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#1E2132]/90 hidden md:block" />
+                  <div className="relative flex-grow overflow-hidden h-[240px] sm:h-[300px] md:h-auto z-10">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#1E2132]/60 via-transparent to-[#1E2132]/90 hidden md:block" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1E2132] via-transparent to-transparent md:hidden" />
                       
                       <div className="absolute top-4 md:top-10 left-4 md:left-10 z-10 w-[80%]">
@@ -160,7 +172,7 @@ const Cheki = () => {
                         <span className="relative z-10 tracking-[0.3em] font-black">AMANKAN SLOT</span>
                       </button>
                       
-                      <p className="mt-4 md:mt-8 text-[8px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">Satu tiket buat foto eksklusif bareng<br className="md:hidden"/>semua member yang perform hari ini.</p>
+                      <p className="mt-4 md:mt-8 text-[8px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">Satu tiket buat foto eksklusif bareng <br className="md:hidden"/>semua member yang perform hari ini.</p>
                   </div>
               </div>
             </motion.div>
@@ -202,7 +214,7 @@ const Cheki = () => {
                     {/* The Actual Member Photo Area */}
                     <div className="relative aspect-[4/5] w-full bg-[#121212] rounded-lg overflow-hidden border border-black/5">
                       <SkeletonImage
-                        src={getMemberImageSrc(member)}
+                        src={getMemberChekiImageSrc(member)}
                         fallbackSrc={getMemberFallbackImage(member)}
                         alt={member.nickname}
                         wrapperClassName="w-full h-full"
@@ -244,8 +256,8 @@ const Cheki = () => {
                                 className="w-full py-3.5 md:py-5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] rounded-xl md:rounded-2xl shadow-lg active:scale-95 transition-all hover:brightness-95"
                                 style={{ 
                                   backgroundColor: member.themeColor,
-                                  color: member.themeColor.toUpperCase() === '#F8F9FA' ? '#1A1A1D' : 'white',
-                                  border: member.themeColor.toUpperCase() === '#F8F9FA' ? '1px solid rgba(0,0,0,0.1)' : 'none'
+                                  color: isLightColor(member.themeColor) ? '#1A1A1D' : 'white',
+                                  border: isLightColor(member.themeColor) ? '1px solid rgba(0,0,0,0.1)' : 'none'
                                 }}
                             >
                                 ADD TO SLIP

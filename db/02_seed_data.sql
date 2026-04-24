@@ -16,7 +16,7 @@ VALUES
     (6, 'Kanai, Devilish Black', 'Kanai', '#1A1A1D', 'K', 'Devilish Black', '-', false),
     (7, 'Celline, Crystal White', 'Celline', '#F8F9FA', 'C', 'Crystal White', '-', false),
     (8, 'Axie, Baby Blue', 'Axie', '#89CFF0', 'A', 'Baby Blue', '-', false),
-    (9, 'Abell, Energetic Purple', 'Abell', '#A020F0', 'A', 'Energetic Purple', '-', false),
+    (9, 'Abel, Dazzling Purple', 'Abel', '#A020F0', 'A', 'Dazzling Purple', '-', false),
     (10, 'Lynx, Lucky Red', 'Lynx', '#FF0000', 'L', 'Lucky Red', '-', false);
 
 -- Adjust the sequence generator so future inserts resume from 11

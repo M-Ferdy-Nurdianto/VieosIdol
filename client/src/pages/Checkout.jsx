@@ -26,11 +26,19 @@ const Checkout = () => {
       const event = liveEvents.find(e => e.id.toString() === eventId.toString());
       if (event && event.type === 'special') {
         const memberName = item.member?.nickname || item.name.split(' ')[0];
-        if (item.type === 'solo' && event.special_prices && event.special_prices[memberName]) {
-            return event.special_prices[memberName];
+        const specialPrices = event.special_prices || {};
+
+        if (item.type === 'solo') {
+          if (memberName && specialPrices[memberName] != null) return specialPrices[memberName];
+          const lowerMemberName = memberName?.toLowerCase();
+          if (lowerMemberName && specialPrices[lowerMemberName] != null) return specialPrices[lowerMemberName];
+          if (specialPrices.solo != null) return specialPrices.solo;
+          if (specialPrices.SOLO != null) return specialPrices.SOLO;
         }
-        if (item.type === 'group' && event.special_prices?.['GROUP']) {
-            return event.special_prices['GROUP'];
+
+        if (item.type === 'group') {
+          if (specialPrices.GROUP != null) return specialPrices.GROUP;
+          if (specialPrices.group != null) return specialPrices.group;
         }
       }
     }
@@ -41,6 +49,13 @@ const Checkout = () => {
         if (item.type === 'group') return liveSettings.prices.regular_cheki_group;
     }
 
+    return item.price;
+  };
+  const getRegularPrice = (item) => {
+    if (liveSettings?.prices) {
+      if (item.type === 'solo') return liveSettings.prices.regular_cheki_solo;
+      if (item.type === 'group') return liveSettings.prices.regular_cheki_group;
+    }
     return item.price;
   };
   const [isOrdered, setIsOrdered] = useState(false);
@@ -99,7 +114,14 @@ const Checkout = () => {
     localStorage.setItem('vieos_cart', JSON.stringify(newCart));
   };
 
+  const selectedEventMeta = liveEvents.find(e => e.id.toString() === String(formData.eventId));
+  const isSpecialEvent = selectedEventMeta?.type === 'special';
   const total = cart.reduce((sum, item) => sum + getItemPrice(item, formData.eventId), 0);
+  const hasSpecialPricing = isSpecialEvent && cart.some((item) => {
+    const currentPrice = getItemPrice(item, formData.eventId);
+    const regularPrice = getRegularPrice(item);
+    return currentPrice !== regularPrice;
+  });
 
   const handleSaveReceipt = async () => {
     if (!receiptRef.current) return;
@@ -362,21 +384,26 @@ const Checkout = () => {
                            onClick={() => setFormData(prev => ({ ...prev, isDropdownOpen: !prev.isDropdownOpen }))}
                            className="w-full bg-white/60 backdrop-blur-md rounded-xl border border-black/5 p-2.5 text-[11px] font-bold text-black cursor-pointer flex justify-between items-center transition-all hover:border-vibrant-pink/50 hover:shadow-lg hover:shadow-vibrant-pink/5 group/trigger"
                          >
-                            <span className={!formData.eventId ? "text-black/20 font-black tracking-widest text-[9px]" : "flex items-center gap-2"}>
+                            <span className={!formData.eventId ? "text-black/20 font-black tracking-widest text-[9px]" : "flex items-center gap-2 min-w-0"}>
                                {formData.eventId ? (
                                  <>
-                                   {liveEvents.find((e) => e.id.toString() === String(formData.eventId))?.name}
+                                   <span className="min-w-0 flex-1 truncate">
+                                     {selectedEventMeta?.name || `Event #${formData.eventId}`}
+                                   </span>
                                    {(() => {
-                                     const selEv = liveEvents.find((e) => e.id.toString() === String(formData.eventId));
+                                     const selEv = selectedEventMeta;
                                      if (!selEv) return null;
                                      const isSp = selEv.type === 'special';
+                                     const isDone = selEv.status === 'done';
                                      return (
                                        <span className={`text-[7px] px-1.5 py-0.5 rounded-full font-black ${
-                                         isSp 
-                                           ? 'bg-purple-500/15 text-purple-600 border border-purple-500/20' 
-                                           : 'bg-green-500/15 text-green-600 border border-green-500/20'
+                                         isDone
+                                           ? 'bg-black/10 text-black/40 border border-black/10'
+                                           : isSp 
+                                             ? 'bg-purple-500/15 text-purple-600 border border-purple-500/20' 
+                                             : 'bg-green-500/15 text-green-600 border border-green-500/20'
                                        }`}>
-                                         {isSp ? '★ SPESIAL' : '● NORMAL'}
+                                         {isDone ? 'SELESAI' : (isSp ? '★ SPESIAL' : '● NORMAL')}
                                        </span>
                                      );
                                    })()}
@@ -420,13 +447,13 @@ const Checkout = () => {
                                               : 'text-black hover:bg-black/5 cursor-pointer'
                                           }`}
                                         >
-                                           <div className="flex items-center gap-3 relative z-10">
-                                             {isSpecial && <Sparkles size={11} className="text-purple-500" />}
-                                             <span className={isCompleted ? 'opacity-40' : 'text-black font-black'}>{ev.name}</span>
+                                           <div className="flex items-center gap-3 relative z-10 min-w-0 flex-1">
+                                             {!isCompleted && isSpecial && <Sparkles size={11} className="text-purple-500" />}
+                                             <span className={`${isCompleted ? 'opacity-40' : 'text-black font-black'} truncate`}>{ev.name}</span>
                                            </div>
 
-                                           <div className="flex items-center gap-1.5 relative z-10">
-                                             {isSpecial ? (
+                                           <div className="flex items-center gap-1.5 relative z-10 shrink-0">
+                                             {!isCompleted && (isSpecial ? (
                                                <span className="text-[7px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/10 font-black">
                                                  ★ SPESIAL
                                                </span>
@@ -434,7 +461,7 @@ const Checkout = () => {
                                                <span className="text-[7px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 border border-green-500/10 font-black">
                                                  ● NORMAL
                                                </span>
-                                             )}
+                                             ))}
                                              <span className={`text-[8px] px-2 py-0.5 rounded-full font-black ${
                                                isCompleted 
                                                  ? 'bg-black/10 text-black/30' 
@@ -495,19 +522,33 @@ const Checkout = () => {
                          Item
                       </label>
                       <div className="bg-white/40 border border-black/5 p-2.5 rounded-xl space-y-1">
+                         {isSpecialEvent && (
+                           <div className="mb-1 flex items-center gap-1.5 text-[7px] font-black uppercase tracking-widest text-purple-600/80">
+                             <Sparkles size={8} className="text-purple-500" />
+                             <span>{hasSpecialPricing ? 'Harga event spesial aktif' : 'Event spesial aktif'}</span>
+                           </div>
+                         )}
                          {Object.values(cart.reduce((acc, item) => {
                            const key = `${item.name}-${item.type}`;
                            if (!acc[key]) acc[key] = { ...item, qty: 0 };
                            acc[key].qty += 1;
                            return acc;
-                         }, {})).map((item, idx) => (
-                           <div key={idx} className="flex justify-between text-[10px] font-black uppercase text-black group">
-                              <div className="flex items-center gap-2">
+                         }, {})).map((item, idx) => {
+                           const regularPrice = getRegularPrice(item);
+                           const currentPrice = getItemPrice(item, formData.eventId);
+                           const isSpecialPrice = isSpecialEvent && currentPrice !== regularPrice;
+
+                           return (
+                             <div key={idx} className="flex justify-between text-[10px] font-black uppercase text-black group">
+                               <div className="flex items-center gap-2">
                                  <span>{item.name}</span>
                                  <span className="text-vibrant-pink text-[8px]">x{item.qty}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                 <span>{(item.price * item.qty)/1000}K</span>
+                               </div>
+                               <div className="flex items-center gap-2">
+                                 {isSpecialPrice && (
+                                   <span className="text-[8px] text-black/30 line-through">{(regularPrice * item.qty)/1000}K</span>
+                                 )}
+                                 <span className={isSpecialPrice ? 'text-vibrant-pink' : ''}>{(currentPrice * item.qty)/1000}K</span>
                                  <button 
                                    onClick={() => {
                                       const newCart = cart.filter(i => `${i.name}-${i.type}` !== `${item.name}-${item.type}`);
@@ -518,9 +559,10 @@ const Checkout = () => {
                                  >
                                     <Trash2 size={8} />
                                  </button>
-                              </div>
-                           </div>
-                         ))}
+                               </div>
+                             </div>
+                           );
+                         })}
                          <div className="mt-2 pt-2 border-t border-black/10 flex justify-between items-center">
                             <span className="text-[9px] font-black uppercase text-black/40">Total</span>
                             <span className="text-xs font-black text-black">IDR {total/1000}K</span>

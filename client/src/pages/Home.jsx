@@ -26,6 +26,13 @@ const Home = () => {
     loadData();
   }, []);
 
+   const formatPoDeadline = (value) => {
+      if (!value) return '';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+   };
+
 
   return (
     <div className="relative min-h-screen">
@@ -77,7 +84,7 @@ const Home = () => {
                >
                   <div className="washi-tape -top-2 -right-10 rotate-45 w-24 bg-vibrant-blue/30" />
                            <SkeletonImage
-                              src="/photo/hero/hero 2.png"
+                              src="/photo/hero/hero.webp"
                               alt="Stage lights"
                               wrapperClassName="w-full aspect-square"
                               className="w-full h-full object-cover bg-black/5"
@@ -180,47 +187,55 @@ const Home = () => {
             {isLoading ? (
               <EventSkeleton />
             ) : events.length > 0 ? (
-              events.map((event, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="group cursor-pointer relative"
-                >
-                  <div className="p-10 rounded-[2.5rem] shadow-sm border border-main group-hover:shadow-xl group-hover:-translate-y-1 transition-all" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
-                    <div className="flex flex-col md:flex-row items-center gap-12">
-                      <div className="text-center md:text-left min-w-full md:min-w-[120px]">
-                        <div className="text-3xl md:text-4xl font-black text-vibrant-pink tracking-tighter">
-                          {event.event_date}
-                        </div>
-                        <div className="text-[9px] md:text-[10px] font-black uppercase tracking-widest mt-1" style={{ color: 'var(--text-muted)' }}>
-                          SAVE THE DATE
-                        </div>
-                      </div>
+                     events.map((event, i) => {
+                        const poLabel = formatPoDeadline(event.po_deadline);
+                        return (
+                           <motion.div
+                              key={i}
+                              initial={{ y: 20, opacity: 0 }}
+                              whileInView={{ y: 0, opacity: 1 }}
+                              viewport={{ once: true }}
+                              transition={{ delay: i * 0.1 }}
+                              className="group cursor-pointer relative"
+                           >
+                              <div className="p-10 rounded-[2.5rem] shadow-sm border border-main group-hover:shadow-xl group-hover:-translate-y-1 transition-all" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border-main)' }}>
+                                 <div className="flex flex-col md:flex-row items-center gap-12">
+                                    <div className="text-center md:text-left min-w-full md:min-w-[120px]">
+                                       <div className="text-3xl md:text-4xl font-black text-vibrant-pink tracking-tighter">
+                                          {event.event_date}
+                                       </div>
+                                       <div className="text-[9px] md:text-[10px] font-black uppercase tracking-widest mt-1" style={{ color: 'var(--text-muted)' }}>
+                                          SAVE THE DATE
+                                       </div>
+                                    </div>
 
-                      <div className="flex-grow">
-                        <h3 className="text-3xl font-black mb-4 group-hover:text-vibrant-pink transition-colors" style={{ color: 'var(--text-main)' }}>
-                          {event.name}
-                        </h3>
-                        <div className="flex flex-wrap justify-center md:justify-start gap-8 text-sm font-bold" style={{ color: 'var(--text-muted)' }}>
-                          <div className="flex items-center gap-2">
-                             <MapPin size={16} /> <span>{event.location}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                             <Clock size={16} /> <span>{event.event_time}</span>
-                          </div>
-                        </div>
-                      </div>
+                                    <div className="flex-grow">
+                                       <h3 className="text-3xl font-black mb-4 group-hover:text-vibrant-pink transition-colors" style={{ color: 'var(--text-main)' }}>
+                                          {event.name}
+                                       </h3>
+                                       <div className="flex flex-wrap justify-center md:justify-start gap-8 text-sm font-bold" style={{ color: 'var(--text-muted)' }}>
+                                          <div className="flex items-center gap-2">
+                                              <MapPin size={16} /> <span>{event.location}</span>
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                              <Clock size={16} /> <span>{event.event_time}</span>
+                                          </div>
+                                          {poLabel && (
+                                             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                                                <span>PO sampai {poLabel}</span>
+                                             </div>
+                                          )}
+                                       </div>
+                                    </div>
 
-                      <a href="/cheki" className="vibrant-button py-4 px-10 text-[10px] whitespace-nowrap">
-                        AMANKAN TIKETMU!
-                      </a>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
+                                    <a href="/cheki" className="vibrant-button py-4 px-10 text-[10px] whitespace-nowrap">
+                                       AMANKAN TIKETMU!
+                                    </a>
+                                 </div>
+                              </div>
+                           </motion.div>
+                        );
+                     })
             ) : (
                 <motion.div 
                     initial={{ opacity: 0 }}

@@ -7,8 +7,8 @@ const slides = [
     title: "SATU CERITA",
     subtitle: "KENANGAN YANG TAK TERLUPAKAN",
     description: "Teriakan kalian selalu jadi semangat kami di atas panggung. Makanya, yuk terus tulis cerita ini bareng — karena tanpa kalian, VIEOS bukan apa-apa. 🤍",
-    image: "/photo/hero/hero.png",
-    fallback: "https://images.unsplash.com/photo-1543807535-eceef0bc6599?auto=format&fit=crop&q=80&w=2000",
+    image: "/photo/hero/hero1.png",
+    fallback: "/photo/hero/hero.webp",
     type: "INTRO",
     accent: "text-vibrant-pink"
   },
@@ -17,8 +17,8 @@ const slides = [
     title: "MEMOIRE",
     subtitle: "RILIS TERBARU • OUT NOW",
     description: "\"Memoire\" akhirnya hadir! Lagu ini bener-bener spesial buat kami — penuh kenangan, penuh perasaan. Udah dengerin belum? 🎵",
-    image: "/photo/hero/hero 2.png",
-    fallback: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=2070",
+    image: "/photo/hero/hero2.png",
+    fallback: "/photo/hero/hero.webp",
     type: "RELEASE",
     accent: "text-vibrant-blue"
   },
@@ -26,9 +26,9 @@ const slides = [
     id: 3,
     title: "HADIR & BERSINAR",
     subtitle: "JANGAN LEWATKAN MOMENNYA",
-    description: "Ketemu langsung sama VIEOS itu selalu beda rasanya. Kalau ada event kami di kotamu, jangan sampai kelewatan ya — kami nunggu kalian di sana! 💗",
-    image: "/photo/hero/hero.png",
-    fallback: "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?auto=format&fit=crop&q=80&w=2000",
+    description: "Ketemu langsung sama VIEOS itu selalu beda rasanya. Kalau ada event kami di kotamu, jangan sampai kelewatan ya — kami tunggu kalian di sana! 💗",
+    image: "/photo/hero/hero3.png",
+    fallback: "/photo/hero/hero.webp",
     type: "EVENT",
     accent: "text-purple-400"
   }
@@ -74,12 +74,21 @@ const HeroCarousel = () => {
             {!isSlideLoaded && (
               <div className="absolute inset-0 animate-pulse bg-black/40" aria-hidden="true" />
             )}
-            <img 
+            <motion.img 
                src={slides[current].image} 
                alt={slides[current].title}
+               initial={{ scale: 1.1, opacity: 0 }}
+               animate={{ 
+                 scale: isSlideLoaded ? 1 : 1.1, 
+                 opacity: isSlideLoaded ? 1 : 0 
+               }}
+               transition={{ 
+                 scale: { duration: 10, ease: "linear" },
+                 opacity: { duration: 0.8, ease: "easeOut" }
+               }}
               loading={current === 0 ? 'eager' : 'lazy'}
               decoding="async"
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isSlideLoaded ? 'opacity-100' : 'opacity-0'}`}
+              className="absolute inset-0 w-full h-full object-cover"
               onLoad={() => setIsSlideLoaded(true)}
                onError={(e) => {
                 if (e.currentTarget.dataset.fallbackApplied === 'true') {

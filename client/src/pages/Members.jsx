@@ -95,12 +95,7 @@ const Members = () => {
               <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 mix-blend-difference opacity-50" style={{ borderColor: 'white' }} />
               <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 mix-blend-difference opacity-50" style={{ borderColor: 'white' }} />
 
-              {/* ID Badge */}
-              <div className="absolute top-0 right-0 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="text-[8px] font-black text-white bg-black/60 px-2 py-0.5 rounded backdrop-blur-sm border border-white/10 uppercase tracking-widest">
-                  #{member.id < 10 ? `0${member.id}` : member.id}
-                </div>
-              </div>
+
 
               {/* Theme Color Glow on Hover */}
               <div 

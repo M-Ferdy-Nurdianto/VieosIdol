@@ -315,7 +315,11 @@ const MemberDetail = () => {
                                                     </div>
                                                     <div>
                                                         <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-0.5">Birthday</span>
-                                                        <span className="text-xs sm:text-sm font-bold text-[var(--text-main)] tracking-tight">{selectedMember.birth_date || '-'}</span>
+                                                        <span className="text-xs sm:text-sm font-bold text-[var(--text-main)] tracking-tight">
+                                                            {(selectedMember.birth_date || '-')
+                                                                .replace(/,?\s?\d{4}$/, '')
+                                                                .replace(/^\d{4}-/, '')}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <div className="bg-[var(--bg-subtle)] border border-[var(--border-main)] p-3 rounded-[1.25rem] flex items-center gap-3 hover:border-vibrant-pink/40 transition-all group backdrop-blur-md">

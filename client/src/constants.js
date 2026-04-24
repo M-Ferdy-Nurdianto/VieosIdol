@@ -89,12 +89,12 @@ export const members = [
     },
     {
         id: 9,
-        name: "Abell, Energetic Purple",
-        nickname: "Abell",
+        name: "Abel, Dazzling Purple",
+        nickname: "Abel",
         themeColor: "#A020F0",
         image: null,
         symbol: "A",
-        vibe: "Energetic Purple",
+        vibe: "Dazzling Purple",
         catchphrase: "-",
         highlight: false
     },
