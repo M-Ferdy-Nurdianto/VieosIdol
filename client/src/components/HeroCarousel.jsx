@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const slides = [
@@ -7,7 +7,7 @@ const slides = [
     title: "SATU CERITA",
     subtitle: "KENANGAN YANG TAK TERLUPAKAN",
     description: "Teriakan kalian selalu jadi semangat kami di atas panggung. Makanya, yuk terus tulis cerita ini bareng — karena tanpa kalian, VIEOS bukan apa-apa. 🤍",
-    image: "/photo/hero/hero1.png",
+    image: "/photo/hero/hero.webp",
     fallback: "/photo/hero/hero.webp",
     type: "INTRO",
     accent: "text-vibrant-pink"
@@ -17,7 +17,7 @@ const slides = [
     title: "MEMOIRE",
     subtitle: "RILIS TERBARU • OUT NOW",
     description: "\"Memoire\" akhirnya hadir! Lagu ini bener-bener spesial buat kami — penuh kenangan, penuh perasaan. Udah dengerin belum? 🎵",
-    image: "/photo/hero/hero2.png",
+    image: "/photo/hero/hero.webp",
     fallback: "/photo/hero/hero.webp",
     type: "RELEASE",
     accent: "text-vibrant-blue"
@@ -27,7 +27,7 @@ const slides = [
     title: "HADIR & BERSINAR",
     subtitle: "JANGAN LEWATKAN MOMENNYA",
     description: "Ketemu langsung sama VIEOS itu selalu beda rasanya. Kalau ada event kami di kotamu, jangan sampai kelewatan ya — kami tunggu kalian di sana! 💗",
-    image: "/photo/hero/hero3.png",
+    image: "/photo/hero/hero.webp",
     fallback: "/photo/hero/hero.webp",
     type: "EVENT",
     accent: "text-purple-400"
@@ -38,6 +38,15 @@ const HeroCarousel = () => {
   const [current, setCurrent] = useState(0);
   const [isLowPowerMode, setIsLowPowerMode] = useState(false);
   const [isSlideLoaded, setIsSlideLoaded] = useState(false);
+  const imgRef = useRef(null);
+  const hasMultipleSlides = slides.length > 1;
+  const backgroundTransition = {
+    duration: isLowPowerMode ? 0.8 : 1.6,
+    ease: [0.22, 1, 0.36, 1]
+  };
+  const textTransition = isLowPowerMode
+    ? { duration: 0.45, ease: 'easeOut' }
+    : { duration: 0.8, ease: [0.22, 1, 0.36, 1] };
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px), (prefers-reduced-motion: reduce), (hover: none) and (pointer: coarse)');
@@ -48,45 +57,54 @@ const HeroCarousel = () => {
   }, []);
 
   useEffect(() => {
+    if (!hasMultipleSlides) {
+      return undefined;
+    }
+
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
     }, isLowPowerMode ? 8000 : 6000);
     return () => clearInterval(timer);
-  }, [isLowPowerMode]);
+  }, [isLowPowerMode, hasMultipleSlides]);
 
   useEffect(() => {
     setIsSlideLoaded(false);
   }, [current]);
 
+  useEffect(() => {
+    if (!imgRef.current) {
+      return;
+    }
+
+    if (imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+      setIsSlideLoaded(true);
+    }
+  }, [current]);
+
   return (
     <div className="relative h-screen w-full overflow-hidden flex items-center justify-center">
       {/* Background Slides */}
-      <AnimatePresence>
+      <AnimatePresence mode="sync">
         <motion.div
           key={current}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: isLowPowerMode ? 0.45 : 1.2, ease: "easeInOut" }}
+          transition={backgroundTransition}
           className="absolute inset-0 z-0"
         >
-          {/* Ken Burns Effect Image */}
+          {/* Fade-only Image */}
             {!isSlideLoaded && (
               <div className="absolute inset-0 animate-pulse bg-black/40" aria-hidden="true" />
             )}
             <motion.img 
-               src={slides[current].image} 
-               alt={slides[current].title}
-               initial={{ scale: 1.1, opacity: 0 }}
-               animate={{ 
-                 scale: isSlideLoaded ? 1 : 1.1, 
-                 opacity: isSlideLoaded ? 1 : 0 
-               }}
-               transition={{ 
-                 scale: { duration: 10, ease: "linear" },
-                 opacity: { duration: 0.8, ease: "easeOut" }
-               }}
-              loading={current === 0 ? 'eager' : 'lazy'}
+              ref={imgRef}
+              src={slides[current].image} 
+              alt={slides[current].title}
+               initial={{ opacity: 0 }}
+               animate={{ opacity: isSlideLoaded ? 1 : 0 }}
+               transition={{ opacity: { duration: isLowPowerMode ? 0.6 : 1, ease: [0.22, 1, 0.36, 1] } }}
+              loading="eager"
               decoding="async"
               className="absolute inset-0 w-full h-full object-cover"
               onLoad={() => setIsSlideLoaded(true)}
@@ -120,14 +138,7 @@ const HeroCarousel = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -10, opacity: 0 }}
-            transition={isLowPowerMode
-              ? { duration: 0.35, ease: 'easeOut' }
-              : {
-                  type: "spring",
-                  stiffness: 100,
-                  damping: 20,
-                  mass: 1
-                }}
+            transition={textTransition}
             className="flex flex-col items-center"
           >
             {/* Badge */}
@@ -179,29 +190,31 @@ const HeroCarousel = () => {
       </div>
 
       {/* Progress Indicators */}
-      <div className="absolute bottom-12 flex items-center gap-6 z-20">
-        <div className="flex gap-3">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrent(index)}
-              className="relative h-1 w-12 bg-white/20 rounded-full overflow-hidden"
-            >
-              {index === current && (
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: isLowPowerMode ? 8 : 6, ease: "linear" }}
-                  className="absolute inset-0 bg-vibrant-pink"
-                />
-              )}
-            </button>
-          ))}
+      {hasMultipleSlides && (
+        <div className="absolute bottom-12 flex items-center gap-6 z-20">
+          <div className="flex gap-3">
+            {slides.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrent(index)}
+                className="relative h-1 w-12 bg-white/20 rounded-full overflow-hidden"
+              >
+                {index === current && (
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: isLowPowerMode ? 8 : 6, ease: "linear" }}
+                    className="absolute inset-0 bg-vibrant-pink"
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="text-[10px] font-bold text-white/50 tracking-widest">
+            0{current + 1} / 0{slides.length}
+          </div>
         </div>
-        <div className="text-[10px] font-bold text-white/50 tracking-widest">
-          0{current + 1} / 0{slides.length}
-        </div>
-      </div>
+      )}
 
       {/* Decorative corner elements */}
       <div className="absolute top-12 left-12 w-24 h-24 border-l border-t border-white/20 -z-10" />

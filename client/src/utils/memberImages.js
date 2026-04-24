@@ -24,6 +24,7 @@ const LOCAL_MEMBER_IMAGE_BY_NICKNAME = Object.freeze({
     celin: '/photo/members/Celin.webp',
     axie: '/photo/members/Axie.webp',
     abel: '/photo/members/Abel.webp',
+    abell: '/photo/members/Abel.webp',
     lynx: '/photo/members/Lynx.webp'
 });
 
@@ -51,10 +52,15 @@ const LOCAL_MEMBER_CHEKI_IMAGE_BY_NICKNAME = Object.freeze({
     celin: '/photo/cheki/Celline.webp',
     axie: '/photo/cheki/Axie.webp',
     abel: '/photo/cheki/Abel.webp',
+    abell: '/photo/cheki/Abel.webp',
     lynx: '/photo/cheki/Lynx.webp'
 });
 
-const normalizeNickname = (value) => String(value || '').trim().toLowerCase();
+const normalizeNickname = (value) => {
+    const raw = String(value || '').trim().toLowerCase();
+    const match = raw.match(/[a-z0-9]+/);
+    return match ? match[0] : '';
+};
 
 export const getLocalMemberImage = (member) => {
     const id = Number(member?.id);
@@ -62,7 +68,7 @@ export const getLocalMemberImage = (member) => {
         return LOCAL_MEMBER_IMAGE_BY_ID[id];
     }
 
-    const nickname = normalizeNickname(member?.nickname);
+    const nickname = normalizeNickname(member?.nickname || member?.name || member?.fullname);
     if (nickname && LOCAL_MEMBER_IMAGE_BY_NICKNAME[nickname]) {
         return LOCAL_MEMBER_IMAGE_BY_NICKNAME[nickname];
     }
@@ -80,10 +86,10 @@ export const getMemberFallbackImage = (member) => {
 
 export const getMemberChekiImageSrc = (member) => {
     const id = Number(member?.id);
-    const nickname = normalizeNickname(member?.nickname);
+    const nickname = normalizeNickname(member?.nickname || member?.name || member?.fullname);
     
     // 1. Overrides for Cheki Folder (Abel, Celline)
-    if (nickname === 'abel') return '/photo/cheki/Abel.webp';
+    if (nickname === 'abel' || nickname === 'abell') return '/photo/cheki/Abel.webp';
     if (nickname === 'celline' || nickname === 'celin') return '/photo/cheki/Celline.webp';
     
     // 2. Try Nickname-based mapping for Cheki folder

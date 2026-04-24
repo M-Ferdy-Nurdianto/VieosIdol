@@ -120,7 +120,18 @@ const Cheki = () => {
         {/* Group Cheki - Premium Landscape Design */}
         <div className="mb-16 md:mb-48 relative px-2 md:px-4 flex justify-center">
           {loading ? (
-              <div className="w-full max-w-5xl md:aspect-[21/8] bg-[#1E2132] rounded-[1.5rem] md:rounded-[2.5rem] animate-pulse border border-white/5" />
+              <div className="w-full max-w-5xl aspect-[21/10] md:aspect-[21/8] bg-[#1E2132] rounded-[1.5rem] md:rounded-[2.5rem] animate-pulse border border-white/5 overflow-hidden flex flex-col md:flex-row shadow-2xl">
+                  <div className="flex-grow bg-white/5 relative">
+                      <div className="absolute top-6 left-6 space-y-3">
+                          <div className="w-20 h-4 bg-white/10 rounded-full" />
+                          <div className="w-48 h-10 bg-white/10 rounded-xl" />
+                      </div>
+                  </div>
+                  <div className="w-full md:w-[380px] bg-black/20 p-8 flex flex-col justify-center items-center gap-6">
+                      <div className="w-32 h-12 bg-white/5 rounded-2xl" />
+                      <div className="w-full h-14 bg-white/5 rounded-2xl" />
+                  </div>
+              </div>
           ) : (
             <motion.div
               initial={{ y: 30, opacity: 0 }}
@@ -130,18 +141,21 @@ const Cheki = () => {
             >
               <div className="relative md:absolute md:inset-0 bg-[#1E2132] rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)] md:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] overflow-hidden border border-white/10 flex flex-col md:flex-row items-stretch">
                   
-                  {/* Background Image - Now covers entire card */}
-                  <div className="absolute inset-0 opacity-60 md:opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-[1.6] md:scale-[1.4] origin-bottom pointer-events-none">
-                    <SkeletonImage
-                      src="/photo/hero/hero.webp"
-                      alt="Group Cheki"
-                      wrapperClassName="absolute inset-0"
-                      className="w-full h-full object-cover object-bottom"
-                    />
-                  </div>
+                  {/* Background Image - Fixed with Tuned Config */}
+                  <div
+                    className="absolute inset-0 grayscale group-hover:grayscale-0 transition-all duration-700 pointer-events-none"
+                    style={{ 
+                        backgroundImage: "url('/photo/hero/hero.webp')",
+                        backgroundSize: '152%',
+                        backgroundPosition: '49% 0%',
+                        backgroundRepeat: 'no-repeat',
+                        opacity: 0.8
+                    }}
+                    aria-hidden="true"
+                  />
 
                   {/* Left: Visual/Promo Area */}
-                  <div className="relative flex-grow overflow-hidden h-[240px] sm:h-[300px] md:h-auto z-10">
+                  <div className="relative flex-grow overflow-hidden h-[180px] sm:h-[240px] md:h-auto z-10">
                       <div className="absolute inset-0 bg-gradient-to-r from-[#1E2132]/60 via-transparent to-[#1E2132]/90 hidden md:block" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1E2132] via-transparent to-transparent md:hidden" />
                       
@@ -157,8 +171,8 @@ const Cheki = () => {
                   </div>
   
                   {/* Right: Booking Panel */}
-                  <div className="relative z-20 w-full md:w-[380px] bg-[#1E2132] p-5 sm:p-6 md:p-10 flex flex-col justify-start md:justify-center items-center text-center border-t border-white/5 md:border-t-0 md:border-l shrink-0">
-                      <div className="mb-4 md:mb-10 w-full">
+                  <div className="relative z-20 w-full md:w-[380px] bg-[#1E2132] p-4 sm:p-6 md:p-10 flex flex-col justify-start md:justify-center items-center text-center border-t border-white/5 md:border-t-0 md:border-l shrink-0">
+                      <div className="mb-3 md:mb-10 w-full">
                           <p className="text-[8px] md:text-[10px] font-bold text-white/20 uppercase tracking-[0.4em] mb-2">Starting From</p>
                           <div className="inline-block bg-white/5 backdrop-blur-md px-4 md:px-6 py-2 md:py-4 rounded-xl md:rounded-3xl border border-white/10 mx-auto">
                                <p className="text-lg md:text-3xl font-black text-vibrant-pink tracking-tighter">IDR {(globalSettings.prices.regular_cheki_group || 35000).toLocaleString('id-ID')}</p>
@@ -167,12 +181,12 @@ const Cheki = () => {
   
                         <button 
                           onClick={() => addToCart({ name: 'Group Cheki', price: globalSettings.prices.regular_cheki_group || 35000, type: 'group' })}
-                        className="vibrant-button w-full py-4 md:py-6 text-[9px] md:text-[10px] relative group/btn shadow-[0_20px_50px_rgba(255,27,141,0.4)]"
+                        className="vibrant-button w-full py-3.5 md:py-6 text-[9px] md:text-[10px] relative group/btn shadow-[0_20px_50px_rgba(255,27,141,0.4)]"
                       >
                         <span className="relative z-10 tracking-[0.3em] font-black">AMANKAN SLOT</span>
                       </button>
                       
-                      <p className="mt-4 md:mt-8 text-[8px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">Satu tiket buat foto eksklusif bareng <br className="md:hidden"/>semua member yang perform hari ini.</p>
+                      <p className="mt-3 md:mt-8 text-[8px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">Satu tiket buat foto eksklusif bareng <br className="md:hidden"/>semua member yang perform hari ini.</p>
                   </div>
               </div>
             </motion.div>

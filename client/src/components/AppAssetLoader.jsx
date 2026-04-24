@@ -2,9 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { LOCAL_MEMBER_IMAGES } from '../utils/memberImages';
 
 const BOOT_IMAGES = [
-    '/photo/hero/hero1.png',
-    '/photo/hero/hero2.png',
-    '/photo/hero/hero3.png',
     '/photo/hero/hero.webp',
     '/photo/about/about-hero.webp',
     '/logos/vieos.webp',
