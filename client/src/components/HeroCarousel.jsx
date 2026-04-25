@@ -16,7 +16,7 @@ const slides = [
     id: 2,
     title: "MEMOIRE",
     subtitle: "RILIS TERBARU • OUT NOW",
-    description: "\"Memoire\" akhirnya hadir! Lagu ini bener-bener spesial buat kami — penuh kenangan, penuh perasaan. Udah dengerin belum? 🎵",
+    description: "\"Memoire\" akhirnya hadir! Lagu ini benar-benar spesial buat kami — penuh kenangan, penuh perasaan. Udah dengerin belum? 🎵",
     image: "/photo/hero/hero.webp",
     fallback: "/photo/hero/hero.webp",
     type: "RELEASE",
