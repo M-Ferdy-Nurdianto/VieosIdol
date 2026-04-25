@@ -81,7 +81,7 @@ const DatePicker = ({ value, onChange, placeholder = "Select date", align = "lef
       day = addDays(day, 1);
     }
     rows.push(
-      <div className="grid grid-cols-7 gap-1" key={day}>
+      <div className="grid grid-cols-7 gap-1" key={day.toISOString()}>
         {days}
       </div>
     );
@@ -141,8 +141,8 @@ const DatePicker = ({ value, onChange, placeholder = "Select date", align = "lef
 
             {/* Days Grid Headers */}
             <div className="grid grid-cols-7 gap-1 text-center mb-2">
-              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-                <div key={day} className="text-[10px] font-bold text-white/30 uppercase">
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                <div key={i} className="text-[10px] font-bold text-white/30 uppercase">
                   {day}
                 </div>
               ))}

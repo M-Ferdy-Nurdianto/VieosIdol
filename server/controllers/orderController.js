@@ -425,10 +425,10 @@ exports.addEvent = async (req, res) => {
             theme: req.body.theme || '',
             lineup: req.body.lineup || ['GROUP'],
             available_members: req.body.available_members || ['GROUP'],
-            special_prices: req.body.type === 'special' ? {
+            special_prices: {
                 "solo": parseInt(req.body.special_solo_price) || 30000,
                 "group": parseInt(req.body.special_group_price) || 35000
-            } : null
+            }
         };
 
         const { data, error } = await supabase
@@ -459,10 +459,10 @@ exports.updateEvent = async (req, res) => {
             theme: req.body.theme || '',
             lineup: req.body.lineup || ['GROUP'],
             available_members: req.body.available_members || ['GROUP'],
-            special_prices: req.body.type === 'special' ? {
+            special_prices: {
                 "solo": parseInt(req.body.special_solo_price) || 30000,
                 "group": parseInt(req.body.special_group_price) || 35000
-            } : null
+            }
         };
 
         const { data, error } = await supabase
@@ -547,7 +547,12 @@ exports.getSettings = async (req, res) => {
             .single();
 
         // Even if error (e.g. table doesn't exist yet), return default values instead of throwing 500
-        res.status(200).json(data || { prices: { member: 30000, group: 35000 } });
+        res.status(200).json(data || { 
+            prices: { 
+                regular_cheki_solo: 30000, 
+                regular_cheki_group: 35000 
+            } 
+        });
     } catch (error) {
         // Fallback if something critically fails
         res.status(200).json({ prices: { member: 30000, group: 35000 } });

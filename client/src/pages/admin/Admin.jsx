@@ -199,7 +199,7 @@ const Admin = () => {
   const initialSyncDoneRef = useRef(false);
 
   const showToast = useCallback((message, type = 'success') => {
-    const id = Date.now();
+    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     setToasts((prev) => [...prev, { id, message, type, isExiting: false }]);
     
     // Set exit animation
@@ -229,7 +229,15 @@ const Admin = () => {
       
       setOrders(ordData);
       setEvents(evData);
-      setGlobalSettings(setData);
+      if (setData && setData.prices) {
+        setGlobalSettings(setData);
+        // Sinkronkan juga eventForm agar tidak memakai default 30rb/35rb jika data di DB berbeda
+        setEventForm(prev => ({
+          ...prev,
+          special_solo_price: setData.prices.regular_cheki_solo || setData.prices.solo || setData.prices.member || 30000,
+          special_group_price: setData.prices.regular_cheki_group || setData.prices.group || 35000
+        }));
+      }
       setMembersList(memData);
       
       if (evData.length > 0) {
@@ -1692,6 +1700,24 @@ const Admin = () => {
                                  <div className="flex items-center gap-4">
                                     <div>
                                        <h4 className="font-bold text-sm group-hover:text-vibrant-pink transition-colors">{ev.name}</h4>
+                                       <div className="flex flex-col items-end gap-1">
+                                          <div className="flex items-center gap-2">
+                                             <span className="text-[10px] font-black uppercase text-white/20 tracking-widest">Pricing</span>
+                                             <div className={`px-2 py-0.5 rounded-full text-[8px] font-black border ${ev.type === 'special' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-green-500/10 text-green-400 border-green-500/20'}`}>
+                                                {ev.type === 'special' ? '★ SPECIAL' : '● REGULAR'}
+                                             </div>
+                                          </div>
+                                          <div className="flex gap-3 text-[10px] font-black text-white/60 tabular-nums">
+                                             <span className="flex items-center gap-1">
+                                                <span className="text-white/20">S:</span>
+                                                {((ev.special_prices?.solo || globalSettings.prices.regular_cheki_solo) / 1000)}K
+                                             </span>
+                                             <span className="flex items-center gap-1">
+                                                <span className="text-white/20">G:</span>
+                                                {((ev.special_prices?.group || globalSettings.prices.regular_cheki_group) / 1000)}K
+                                             </span>
+                                          </div>
+                                       </div>
                                        <div className="flex gap-2 text-xs font-mono text-white/40 mt-1 uppercase">
                                           <span>{ev.event_date || '-'}</span>
                                           <span>•</span>

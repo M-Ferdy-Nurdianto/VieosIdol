@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -123,6 +123,29 @@ const Checkout = () => {
     return currentPrice !== regularPrice;
   });
 
+  // Lineup Validation Logic
+  const invalidCartItems = React.useMemo(() => {
+    if (!selectedEventMeta || cart.length === 0) return [];
+    
+    // Combine available_members and lineup fields
+    const avail = Array.isArray(selectedEventMeta.available_members) ? selectedEventMeta.available_members : [];
+    const lineup = Array.isArray(selectedEventMeta.lineup) ? selectedEventMeta.lineup : [];
+    const fullLineup = [...new Set([...avail, ...lineup])].map(n => n?.toUpperCase());
+
+    return cart.filter(item => {
+      if (item.type === 'group') {
+        return !fullLineup.includes('GROUP');
+      }
+      if (item.type === 'solo') {
+        const nick = (item.member?.nickname || item.name.split(' ')[0] || '').toUpperCase();
+        return !fullLineup.some(ln => ln === nick || ln.startsWith(nick) || nick.startsWith(ln));
+      }
+      return false;
+    });
+  }, [cart, selectedEventMeta]);
+
+  const hasLineupMismatch = invalidCartItems.length > 0;
+
   const handleSaveReceipt = async () => {
     if (!receiptRef.current) return;
     
@@ -195,7 +218,7 @@ const Checkout = () => {
     }
   };
 
-  const isFormValid = formData.nickname && formData.contact && formData.eventId && proof.compressed && cart.length > 0;
+  const isFormValid = formData.nickname && formData.contact && formData.eventId && proof.compressed && cart.length > 0 && !hasLineupMismatch;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -225,6 +248,11 @@ const Checkout = () => {
     const selectedEvent = liveEvents.find(e => e.id.toString() === formData.eventId.toString());
     if (selectedEvent && selectedEvent.status === 'done') {
       showToastMsg("Event sudah selesai, Kak!");
+      return;
+    }
+
+    if (hasLineupMismatch) {
+      showToastMsg("Duh, ada member yang nggak tampil di event ini, Kak. Tolong hapus dulu ya!");
       return;
     }
 
@@ -537,25 +565,27 @@ const Checkout = () => {
                            const regularPrice = getRegularPrice(item);
                            const currentPrice = getItemPrice(item, formData.eventId);
                            const isSpecialPrice = isSpecialEvent && currentPrice !== regularPrice;
+                           const isInvalid = invalidCartItems.some(inv => `${inv.name}-${inv.type}` === `${item.name}-${item.type}`);
 
                            return (
-                             <div key={idx} className="flex justify-between text-[10px] font-black uppercase text-black group">
+                             <div key={idx} className={`flex justify-between text-[10px] font-black uppercase text-black group ${isInvalid ? 'text-red-600' : ''}`}>
                                <div className="flex items-center gap-2">
-                                 <span>{item.name}</span>
-                                 <span className="text-vibrant-pink text-[8px]">x{item.qty}</span>
+                                 {isInvalid && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-red-600">⚠️</motion.span>}
+                                 <span className={isInvalid ? 'line-through opacity-50' : ''}>{item.name}</span>
+                                 <span className={`${isInvalid ? 'text-red-400' : 'text-vibrant-pink'} text-[8px]`}>x{item.qty}</span>
                                </div>
                                <div className="flex items-center gap-2">
                                  {isSpecialPrice && (
                                    <span className="text-[8px] text-black/30 line-through">{(regularPrice * item.qty)/1000}K</span>
                                  )}
-                                 <span className={isSpecialPrice ? 'text-vibrant-pink' : ''}>{(currentPrice * item.qty)/1000}K</span>
+                                 <span className={isInvalid ? 'text-red-600' : isSpecialPrice ? 'text-vibrant-pink' : ''}>{(currentPrice * item.qty)/1000}K</span>
                                  <button 
                                    onClick={() => {
                                       const newCart = cart.filter(i => `${i.name}-${i.type}` !== `${item.name}-${item.type}`);
                                       setCart(newCart);
                                       localStorage.setItem('vieos_cart', JSON.stringify(newCart));
                                    }} 
-                                   className="opacity-0 group-hover:opacity-100 text-red-500"
+                                   className="opacity-100 md:opacity-0 group-hover:opacity-100 text-red-500"
                                  >
                                     <Trash2 size={8} />
                                  </button>
@@ -563,6 +593,13 @@ const Checkout = () => {
                              </div>
                            );
                          })}
+                         {hasLineupMismatch && (
+                           <div className="mt-2 p-1.5 bg-red-500/10 border border-red-500/20 rounded-lg">
+                             <p className="text-[7px] font-black text-red-600 uppercase text-center leading-tight">
+                               Hapus item merah! Member tidak ada dalam lineup event ini.
+                             </p>
+                           </div>
+                         )}
                          <div className="mt-2 pt-2 border-t border-black/10 flex justify-between items-center">
                             <span className="text-[9px] font-black uppercase text-black/40">Total</span>
                             <span className="text-xs font-black text-black">IDR {total/1000}K</span>
@@ -612,8 +649,8 @@ const Checkout = () => {
               <div className="mt-4">
                  <button 
                     onClick={handleConfirmOrder}
-                    disabled={isSubmitting || proof.isCompressing || liveEvents.length === 0 || !liveEvents.some(ev => ev.status !== 'done')}
-                    className={`w-full bg-black text-white py-4 rounded-xl font-black text-[10px] tracking-[0.4em] uppercase shadow-2xl hover:translate-y-[-1px] active:translate-y-0 transition-all relative group overflow-hidden ${isSubmitting || proof.isCompressing || liveEvents.length === 0 || !liveEvents.some(ev => ev.status !== 'done') ? 'opacity-40 cursor-not-allowed filter grayscale' : ''}`}
+                    disabled={isSubmitting || proof.isCompressing || liveEvents.length === 0 || !liveEvents.some(ev => ev.status !== 'done') || hasLineupMismatch}
+                    className={`w-full bg-black text-white py-4 rounded-xl font-black text-[10px] tracking-[0.4em] uppercase shadow-2xl hover:translate-y-[-1px] active:translate-y-0 transition-all relative group overflow-hidden ${isSubmitting || proof.isCompressing || liveEvents.length === 0 || !liveEvents.some(ev => ev.status !== 'done') || hasLineupMismatch ? 'opacity-40 cursor-not-allowed filter grayscale' : ''}`}
                   >
                      <span className="relative z-10 flex items-center justify-center gap-3">
                        {isSubmitting ? 'PROSES...' : proof.isCompressing ? 'KOMPRESI GAMBAR...' : 'SELESAIKAN ORDER'} <Send size={12} className="group-hover:translate-x-1 transition-transform" />
