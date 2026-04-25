@@ -50,6 +50,14 @@
       "dest": "/client/index.html"
     },
     {
+      "src": "/sitemap.xml",
+      "dest": "/client/sitemap.xml"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "/client/robots.txt"
+    },
+    {
       "src": "/(.*)",
       "dest": "/client/index.html"
     }
