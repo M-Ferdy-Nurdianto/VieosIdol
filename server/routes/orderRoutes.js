@@ -22,6 +22,7 @@ router.post('/', orderController.createOrder);
 router.get('/', orderController.getAllOrders);
 router.patch('/:id', orderController.updateOrderStatus);
 router.patch('/:id/details', orderController.updateOrderDetails);
+router.delete('/:id', orderController.deleteOrder);
 
 // Image Upload
 router.post('/upload-proof', upload.single('proof'), orderController.uploadProof);

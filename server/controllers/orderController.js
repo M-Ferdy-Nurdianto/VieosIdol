@@ -354,6 +354,49 @@ exports.updateOrderDetails = async (req, res) => {
     }
 };
 
+exports.deleteOrder = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 1. Get order details to check for payment proof
+        const { data: order, error: fetchError } = await supabase
+            .from('orders')
+            .select('payment_proof_url')
+            .eq('id', id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        // 2. Delete payment proof from storage if it exists
+        if (order && order.payment_proof_url) {
+            const parts = order.payment_proof_url.split('/');
+            const fileName = parts[parts.length - 1];
+            
+            const { error: storageError } = await supabase
+                .storage
+                .from('payment-proofs')
+                .remove([fileName]);
+
+            if (storageError) {
+                console.error('Gagal menghapus gambar bukti bayar:', storageError);
+            }
+        }
+
+        // 3. Delete order from database
+        const { error: deleteError } = await supabase
+            .from('orders')
+            .delete()
+            .eq('id', id);
+
+        if (deleteError) throw deleteError;
+
+        res.status(200).json({ message: 'Pesanan berhasil dihapus.' });
+    } catch (error) {
+        console.error('deleteOrder error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // =============================================
 // IMAGE UPLOAD (Payment Proof)
 // =============================================
@@ -962,8 +1005,8 @@ exports.exportToPdf = async (req, res) => {
 
         drawCard(14, 68, "REVENUE (PAID)", `Rp ${totalSales.toLocaleString()}`, pink);
         drawCard(63, 68, "PAID & READY", `${readyToCollect} orders`, blue);
-        drawCard(112, 68, "COMPLETED", `${doneCount} orders`, blue);
-        drawCard(161, 68, "TOTAL ITEMS", `${totalQty} units`, pink);
+        drawCard(112, 68, "SUDAH DIAMBIL", `${doneCount} orders`, blue);
+        drawCard(161, 68, "TOTAL POLAROID", `${totalQty} units`, pink);
 
         // Member Performance
         doc.setFontSize(12);
