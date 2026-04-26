@@ -542,7 +542,19 @@ const Checkout = () => {
                             </div>
                          </div>
                       </div>
-                   </div>
+                       
+                       {/* Bank Alternative */}
+                       <div className="mt-3 bg-white/60 p-3 rounded-xl border border-black/5 flex items-center gap-3">
+                         <div className="w-10 h-10 bg-white rounded-lg p-1 shadow-sm flex items-center justify-center flex-shrink-0">
+                           <span className="font-black text-blue-700 text-[10px]">BCA</span>
+                         </div>
+                         <div className="flex-1">
+                           <p className="text-[7px] font-black text-black/40 uppercase tracking-widest leading-none mb-1">Transfer Bank Alternative</p>
+                           <p className="text-[10px] font-mono font-bold text-black tracking-tighter leading-none">0184312049</p>
+                           <p className="text-[7px] font-bold text-black uppercase mt-1 leading-none">A.N. TAAJMEHRU MUHAMMAD TEGAR</p>
+                         </div>
+                       </div>
+                    </div>
 
                    {/* Item Summary - Moved Here */}
                    <div>
@@ -894,10 +906,16 @@ const Checkout = () => {
                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl" />
                 </div>
 
-                <div className="bg-vibrant-pink/10 p-4 rounded-2xl mb-8 border border-vibrant-pink/5">
+                <div className="bg-vibrant-pink/10 p-4 rounded-2xl mb-4 border border-vibrant-pink/5">
                    <p className="text-[9px] font-black text-vibrant-pink uppercase tracking-widest leading-relaxed text-center">
                      Pastikan nominal transfer sesuai dengan total pesanan Anda ya Kak!
                    </p>
+                </div>
+
+                <div className="bg-black/5 p-4 rounded-2xl mb-8 border border-black/5">
+                   <p className="text-[7px] font-black text-black/40 uppercase tracking-widest text-center mb-1">Alternatif Transfer BCA</p>
+                   <p className="text-sm font-mono font-bold text-black text-center tracking-widest">0184312049</p>
+                   <p className="text-[7px] font-bold text-black text-center uppercase mt-1">A.N. TAAJMEHRU MUHAMMAD TEGAR</p>
                 </div>
 
                 <button 
