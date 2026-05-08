@@ -1,15 +1,26 @@
 const rateLimit = require('express-rate-limit');
 
+const parsePositiveInt = (value) => {
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    return parsed;
+};
+
+const RATE_LIMIT_WINDOW_MS = parsePositiveInt(process.env.RATE_LIMIT_WINDOW_MS) ?? (15 * 60 * 1000);
+const RATE_LIMIT_MAX = parsePositiveInt(process.env.RATE_LIMIT_MAX) ?? 267;
+const ORDER_RATE_LIMIT_WINDOW_MS = parsePositiveInt(process.env.ORDER_RATE_LIMIT_WINDOW_MS) ?? RATE_LIMIT_WINDOW_MS;
+const ORDER_RATE_LIMIT_MAX = parsePositiveInt(process.env.ORDER_RATE_LIMIT_MAX) ?? RATE_LIMIT_MAX;
+
 /**
- * Limit requests to 100 per 15 minutes for most APIs
+ * General rate limit for most APIs
  */
 const standardLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    windowMs: RATE_LIMIT_WINDOW_MS,
+    max: RATE_LIMIT_MAX,
+    standardHeaders: true,
+    legacyHeaders: false,
     message: {
-        error: 'Too many requests from this IP, please try again after 15 minutes'
+        error: 'Too many requests from this IP, please try again later.'
     }
 });
 
@@ -17,12 +28,12 @@ const standardLimiter = rateLimit({
  * Stricter limit for order creation to prevent spam
  */
 const orderLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10, // Limit each IP to 10 requests per hour
+    windowMs: ORDER_RATE_LIMIT_WINDOW_MS,
+    max: ORDER_RATE_LIMIT_MAX,
     standardHeaders: true,
     legacyHeaders: false,
     message: {
-        error: 'Order limit reached. Please wait an hour before placing more orders.'
+        error: 'Order limit reached. Please wait before placing more orders.'
     }
 });
 

@@ -14,6 +14,9 @@ const { standardLimiter } = require('./middleware/security');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+const trustProxy = process.env.TRUST_PROXY === 'true' || Boolean(process.env.VERCEL);
+app.set('trust proxy', trustProxy ? 1 : false);
+
 const allowedOrigins = [
     process.env.FRONTEND_URL,
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
